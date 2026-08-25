@@ -16,6 +16,7 @@ import {
   SystemInsight,
   DepartmentInsight,
   RoutingRecommendation,
+  SystemMetadata,
 } from '../intelligence/types';
 import { loadCpgramsDataset } from '../data/csvLoader';
 import { CpgramsService, initializeCpgramsService } from './cpgramsService';
@@ -37,6 +38,40 @@ async function getClientCpgramsService(): Promise<CpgramsService> {
     })();
   }
   return clientServicePromise;
+}
+
+// 0. System Metadata
+export async function fetchSystemMetadata(): Promise<SystemMetadata> {
+  try {
+    const res = await fetch('/api/meta');
+    if (res.ok) return await res.json();
+  } catch {}
+  return {
+    version: '0.6.0',
+    name: 'SAMADHAN — Public Grievance Redressal & Intelligence Platform',
+    description: 'Civic-tech modernization of India’s CPGRAMS public grievance experience.',
+    event: 'Build What Moves India',
+    totalRowsParsed: 2134,
+    reportingEntitiesCount: 278,
+    availableDatasets: [
+      'live_dashboard_2026',
+      'appeal_dashboard_2026-08-25',
+      'department_history_2016_2026-02-28',
+      'state_history_2016_2026-02-28',
+      'state_cpgrams_2020_2024',
+      'year_wise_cpgrams',
+      'monthly_central_2026',
+      'monthly_states_ut_2026',
+    ],
+    availableMetrics: ['received', 'disposed', 'percent_disposed', 'appeals_received', 'appeals_disposed'],
+    livePeriod: '2026-01-01 to 2026-08-24',
+    intelligenceEngineVersion: '2.0.0-phase6',
+    methodology: {
+      riskScoring: 'Deterministic 0-100 scoring based on disposal velocity benchmarks, chronic 1-year pendency, and 180-365 day aging volume.',
+      routingModel: 'Deterministic word-boundary taxonomy matching mapping citizen problem vocabulary to 278 real public authorities.',
+      datasetIntegrity: 'Strict dataset isolation; live dashboards, monthly central reports, 10-year longitudinal series, and appeals are maintained in separate analytical partitions.',
+    },
+  };
 }
 
 // 1. System Overview

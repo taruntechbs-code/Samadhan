@@ -14,28 +14,91 @@ import {
   calculateDepartmentRisk,
   generateDepartmentRecommendations,
   TrendInsight,
+  SystemMetadata,
 } from '../intelligence';
 
 export const apiRouter = Router();
 
-// Helper to safely parse numeric query param
-function parseNumberQuery(val: unknown): number | undefined {
+// Helper to safely parse numeric query param with range validation
+function parseNumberQuery(val: unknown, min?: number, max?: number): { value?: number; error?: string } {
   if (typeof val === 'string' && val.trim() !== '') {
     const num = Number(val);
-    return isNaN(num) ? undefined : num;
+    if (isNaN(num)) {
+      return { error: `Value '${val}' is not a valid number.` };
+    }
+    if (min !== undefined && num < min) {
+      return { error: `Value ${num} is less than minimum allowed (${min}).` };
+    }
+    if (max !== undefined && num > max) {
+      return { error: `Value ${num} is greater than maximum allowed (${max}).` };
+    }
+    return { value: num };
   }
-  return undefined;
+  return {};
 }
 
 // ==========================================
-// 1. HEALTH & CORE API
+// 1. HEALTH & METADATA
 // ==========================================
 
 apiRouter.get('/health', (_req: Request, res: Response) => {
+  const service = getServerCpgramsService();
+  const entities = service.getAvailableEntities();
+  const metrics = service.getAvailableMetrics();
+
   res.json({
     status: 'ok',
     service: 'samadhan-api',
+    version: '0.6.0',
+    dataset: {
+      loaded: true,
+      rows: 2134,
+      entitiesCount: entities.length,
+      metricsCount: metrics.length,
+      livePeriod: '2026-01-01 to 2026-08-24',
+    },
+    intelligence: {
+      riskEngine: 'active (deterministic)',
+      recommendationEngine: 'active (rule-driven)',
+      routingEngine: 'active (taxonomy-heuristic prototype)',
+    },
+    timestamp: new Date().toISOString(),
   });
+});
+
+apiRouter.get('/meta', (_req: Request, res: Response) => {
+  const service = getServerCpgramsService();
+  const entities = service.getAvailableEntities();
+  const metrics = service.getAvailableMetrics();
+
+  const metadata: SystemMetadata = {
+    version: '0.6.0',
+    name: 'SAMADHAN — Public Grievance Redressal & Intelligence Platform',
+    description: 'Civic-tech modernization of India’s CPGRAMS public grievance experience.',
+    event: 'Build What Moves India',
+    totalRowsParsed: 2134,
+    reportingEntitiesCount: entities.length,
+    availableDatasets: [
+      'live_dashboard_2026',
+      'appeal_dashboard_2026-08-25',
+      'department_history_2016_2026-02-28',
+      'state_history_2016_2026-02-28',
+      'state_cpgrams_2020_2024',
+      'year_wise_cpgrams',
+      'monthly_central_2026',
+      'monthly_states_ut_2026',
+    ],
+    availableMetrics: metrics,
+    livePeriod: '2026-01-01 to 2026-08-24',
+    intelligenceEngineVersion: '2.0.0-phase6',
+    methodology: {
+      riskScoring: 'Deterministic 0-100 scoring based on disposal velocity benchmarks, chronic 1-year pendency, and 180-365 day aging volume.',
+      routingModel: 'Deterministic word-boundary taxonomy matching mapping citizen problem vocabulary to 278 real public authorities.',
+      datasetIntegrity: 'Strict dataset isolation; live dashboards, monthly central reports, 10-year longitudinal series, and appeals are maintained in separate analytical partitions.',
+    },
+  };
+
+  res.json(metadata);
 });
 
 // ==========================================
@@ -73,6 +136,7 @@ apiRouter.get('/intelligence/attention', (req: Request, res: Response) => {
       severity: item.severity,
       riskScore: risk?.riskScore || 0,
       reasons: [item.reason],
+      factors: risk?.factors || [],
       recommendations,
       evidence: risk?.evidence || [],
     };
@@ -95,8 +159,8 @@ apiRouter.get('/intelligence/departments/:entity', (req: Request, res: Response)
   if (!entityParam || typeof entityParam !== 'string' || entityParam.trim() === '') {
     res.status(400).json({
       error: {
-        code: 'INVALID_ENTITY',
-        message: 'Entity name is required.',
+        code: 'INVALID_PARAMETER',
+        message: 'Entity name parameter is required.',
       },
     });
     return;
@@ -108,7 +172,7 @@ apiRouter.get('/intelligence/departments/:entity', (req: Request, res: Response)
   if (!insights) {
     res.status(404).json({
       error: {
-        code: 'NOT_FOUND',
+        code: 'ENTITY_NOT_FOUND',
         message: `Department '${decodedEntity}' not found in CPGRAMS dataset.`,
       },
     });
@@ -125,7 +189,7 @@ apiRouter.get('/intelligence/routing', (req: Request, res: Response) => {
   if (!textQuery || typeof textQuery !== 'string' || textQuery.trim() === '') {
     res.status(400).json({
       error: {
-        code: 'MISSING_QUERY_TEXT',
+        code: 'ROUTING_INPUT_REQUIRED',
         message: 'Query parameter "text" is required for grievance routing.',
       },
     });
@@ -145,8 +209,8 @@ apiRouter.get('/intelligence/trends/:entity', (req: Request, res: Response) => {
   if (!entityParam || typeof entityParam !== 'string' || entityParam.trim() === '') {
     res.status(400).json({
       error: {
-        code: 'INVALID_ENTITY',
-        message: 'Entity name is required.',
+        code: 'INVALID_PARAMETER',
+        message: 'Entity name parameter is required.',
       },
     });
     return;
@@ -158,7 +222,7 @@ apiRouter.get('/intelligence/trends/:entity', (req: Request, res: Response) => {
   if (seriesList.length === 0) {
     res.status(404).json({
       error: {
-        code: 'NOT_FOUND',
+        code: 'ENTITY_NOT_FOUND',
         message: `No trend data found for entity '${decodedEntity}'.`,
       },
     });
@@ -239,7 +303,7 @@ apiRouter.get('/departments/ranking', (req: Request, res: Response) => {
   if (!validSortKeys.includes(sortBy)) {
     res.status(400).json({
       error: {
-        code: 'INVALID_SORT_KEY',
+        code: 'INVALID_PARAMETER',
         message: `Invalid sortBy parameter '${sortBy}'. Valid options: ${validSortKeys.join(', ')}`,
       },
     });
@@ -249,7 +313,7 @@ apiRouter.get('/departments/ranking', (req: Request, res: Response) => {
   if (order !== 'asc' && order !== 'desc') {
     res.status(400).json({
       error: {
-        code: 'INVALID_ORDER',
+        code: 'INVALID_PARAMETER',
         message: `Invalid order parameter '${order}'. Valid options: 'asc', 'desc'`,
       },
     });
@@ -273,14 +337,24 @@ apiRouter.get('/departments', (req: Request, res: Response) => {
   const service = getServerCpgramsService();
   const scope = req.query.scope as string | undefined;
   const entity = req.query.entity as string | undefined;
-  const minDisposalRate = parseNumberQuery(req.query.minDisposalRate);
-  const maxDisposalRate = parseNumberQuery(req.query.maxDisposalRate);
+
+  const minDisp = parseNumberQuery(req.query.minDisposalRate, 0, 100);
+  if (minDisp.error) {
+    res.status(400).json({ error: { code: 'INVALID_PARAMETER', message: `minDisposalRate: ${minDisp.error}` } });
+    return;
+  }
+
+  const maxDisp = parseNumberQuery(req.query.maxDisposalRate, 0, 100);
+  if (maxDisp.error) {
+    res.status(400).json({ error: { code: 'INVALID_PARAMETER', message: `maxDisposalRate: ${maxDisp.error}` } });
+    return;
+  }
 
   const summaries = service.getDepartmentSummaries({
     scope,
     entity,
-    minDisposalRate,
-    maxDisposalRate,
+    minDisposalRate: minDisp.value,
+    maxDisposalRate: maxDisp.value,
   });
 
   res.json({
@@ -298,8 +372,8 @@ apiRouter.get('/departments/:entity', (req: Request, res: Response) => {
   if (!entityParam || typeof entityParam !== 'string' || entityParam.trim() === '') {
     res.status(400).json({
       error: {
-        code: 'INVALID_ENTITY',
-        message: 'Entity name is required.',
+        code: 'INVALID_PARAMETER',
+        message: 'Entity name parameter is required.',
       },
     });
     return;
@@ -311,7 +385,7 @@ apiRouter.get('/departments/:entity', (req: Request, res: Response) => {
   if (!detail) {
     res.status(404).json({
       error: {
-        code: 'NOT_FOUND',
+        code: 'ENTITY_NOT_FOUND',
         message: `Department '${decodedEntity}' not found in CPGRAMS dataset.`,
       },
     });
@@ -327,17 +401,17 @@ apiRouter.get('/attention', (req: Request, res: Response) => {
   const dataset = req.query.dataset as string | undefined;
   const scope = req.query.scope as string | undefined;
 
-  const criticalPending1YearThreshold = parseNumberQuery(req.query.criticalPending1YearThreshold);
-  const criticalDisposalRateThreshold = parseNumberQuery(req.query.criticalDisposalRateThreshold);
-  const warningDisposalRateThreshold = parseNumberQuery(req.query.warningDisposalRateThreshold);
-  const warningPending180To365Threshold = parseNumberQuery(req.query.warningPending180To365Threshold);
+  const crit1yr = parseNumberQuery(req.query.criticalPending1YearThreshold, 0);
+  const critDisp = parseNumberQuery(req.query.criticalDisposalRateThreshold, 0, 100);
+  const warnDisp = parseNumberQuery(req.query.warningDisposalRateThreshold, 0, 100);
+  const warn180 = parseNumberQuery(req.query.warningPending180To365Threshold, 0);
 
   const attentionList = service.getAttentionRequired(
     {
-      criticalPending1YearThreshold,
-      criticalDisposalRateThreshold,
-      warningDisposalRateThreshold,
-      warningPending180To365Threshold,
+      criticalPending1YearThreshold: crit1yr.value,
+      criticalDisposalRateThreshold: critDisp.value,
+      warningDisposalRateThreshold: warnDisp.value,
+      warningPending180To365Threshold: warn180.value,
     },
     { dataset, scope }
   );
@@ -440,7 +514,7 @@ apiRouter.get('/metrics/:metric', (req: Request, res: Response) => {
   if (!isKnown) {
     res.status(400).json({
       error: {
-        code: 'INVALID_METRIC',
+        code: 'METRIC_NOT_FOUND',
         message: `Metric '${metricParam}' does not exist in the CPGRAMS dataset.`,
       },
     });

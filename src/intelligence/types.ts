@@ -15,12 +15,22 @@ export interface EvidenceReference {
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+export interface RiskFactor {
+  metric: string;
+  observed: number | string;
+  threshold: number | string;
+  points: number;
+  explanation: string;
+  evidence: EvidenceReference;
+}
+
 export interface DepartmentRisk {
   entity: string;
   scope: string;
   riskLevel: RiskLevel;
   riskScore: number; // 0 to 100 deterministic score
   reasons: string[];
+  factors: RiskFactor[];
   evidence: EvidenceReference[];
 }
 
@@ -30,6 +40,7 @@ export interface AttentionRecommendation {
   rationale: string;
   triggerCondition: string;
   targetMetric: string;
+  evidence?: EvidenceReference;
 }
 
 export interface DepartmentInsight {
@@ -92,12 +103,33 @@ export interface CandidateEntityMatch {
   reason: string;
 }
 
+export type RoutingStatus = 'MATCHED' | 'NEEDS_REVIEW' | 'UNCATEGORIZED';
+
 export interface RoutingRecommendation {
   queryText: string;
+  status: RoutingStatus;
   detectedCategory: string;
   recommendedEntity: string | null;
   confidence: number; // 0.0 to 1.0
   matchReason: string;
   alternativeCandidates: CandidateEntityMatch[];
   disclaimer: string;
+}
+
+export interface SystemMetadata {
+  version: string;
+  name: string;
+  description: string;
+  event: string;
+  totalRowsParsed: number;
+  reportingEntitiesCount: number;
+  availableDatasets: string[];
+  availableMetrics: string[];
+  livePeriod: string;
+  intelligenceEngineVersion: string;
+  methodology: {
+    riskScoring: string;
+    routingModel: string;
+    datasetIntegrity: string;
+  };
 }

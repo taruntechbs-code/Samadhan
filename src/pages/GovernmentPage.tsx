@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingState';
+import { EvidenceBadge } from '../components/common/EvidenceBadge';
 import { ExecutiveKpis } from '../components/government/ExecutiveKpis';
 import { AgingDistributionCard } from '../components/government/AgingDistributionCard';
 import { AttentionActionCockpit, AttentionActionItem } from '../components/government/AttentionActionCockpit';
@@ -26,10 +27,12 @@ import {
   FileQuestion,
   RefreshCw,
   Activity,
+  Globe2,
 } from 'lucide-react';
 
 export const GovernmentPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'attention' | 'leaderboard' | 'appeals'>('overview');
+  const [scopeFilter, setScopeFilter] = useState<'ALL' | 'Department' | 'State/UT'>('ALL');
   const [overview, setOverview] = useState<SystemOverview | null>(null);
   const [leaderboardMetrics, setLeaderboardMetrics] = useState<PeriodDepartmentMetrics[]>([]);
   const [attentionItems, setAttentionItems] = useState<AttentionActionItem[]>([]);
@@ -38,13 +41,14 @@ export const GovernmentPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadData = async () => {
+  const loadData = async (scope?: string) => {
     setLoading(true);
     try {
+      const scopeParam = scope && scope !== 'ALL' ? scope : undefined;
       const [ov, rank, att, ins, app] = await Promise.all([
-        fetchSystemOverview('live_dashboard_2026'),
-        fetchDepartmentRanking('received', 'desc'),
-        fetchEnrichedAttention('live_dashboard_2026'),
+        fetchSystemOverview('live_dashboard_2026', scopeParam),
+        fetchDepartmentRanking('received', 'desc', { scope: scopeParam }),
+        fetchEnrichedAttention('live_dashboard_2026', scopeParam),
         fetchSystemInsights(),
         fetchAppealsOverview(),
       ]);
@@ -62,33 +66,89 @@ export const GovernmentPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(scopeFilter);
+  }, [scopeFilter]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '2.5rem' }}>
       {/* Header Section */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
             <Badge type="primary">
               <Activity size={12} />
               <span>National Operations &amp; Intelligence Cockpit</span>
             </Badge>
             <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Official CPGRAMS Live Telemetry &bull; 2026
+              Official CPGRAMS Live Telemetry &bull; Jan 1 to Aug 24, 2026
             </span>
           </div>
           <h1 className="headline-medium">Administrative Redressal Cockpit</h1>
           <p className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-            Real-time monitoring, AI risk triage, and actionable operational insights across 278 public entities
+            Real-time monitoring, deterministic risk triage, and actionable operational guidance across 278 public authorities
           </p>
         </div>
 
-        <Button variant="tonal" onClick={loadData} disabled={loading}>
-          <RefreshCw size={16} className={loading ? 'spin' : ''} />
-          <span>Refresh Live Telemetry</span>
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {overview && (
+            <EvidenceBadge
+              evidence={{
+                dataset: overview.dataset,
+                entity: 'All Reporting Entities',
+                metric: 'received / disposed',
+                value: `${overview.disposed.toLocaleString('en-IN')} / ${overview.received.toLocaleString('en-IN')}`,
+                period: `${overview.periodStart} to ${overview.periodEnd}`,
+                sourceUrl: overview.source.sourceUrl,
+                sourceNote: overview.source.sourceNote,
+              }}
+              label="Audit Lineage"
+            />
+          )}
+
+          <Button variant="tonal" onClick={() => loadData(scopeFilter)} disabled={loading}>
+            <RefreshCw size={16} className={loading ? 'spin' : ''} />
+            <span>Refresh Telemetry</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* National Pulse Scope Selector Bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          backgroundColor: 'var(--md-sys-color-surface-container)',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '20px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--md-sys-color-primary)' }}>
+          <Globe2 size={18} />
+          <span>National Pulse Scope:</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.375rem', backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '0.25rem', borderRadius: 'var(--radius-pill)' }}>
+          {(['ALL', 'Department', 'State/UT'] as const).map(sc => (
+            <button
+              key={sc}
+              type="button"
+              className="btn"
+              style={{
+                minHeight: '34px',
+                padding: '0.35rem 1rem',
+                fontSize: '0.8125rem',
+                backgroundColor: scopeFilter === sc ? 'var(--md-sys-color-primary)' : 'transparent',
+                color: scopeFilter === sc ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+              }}
+              onClick={() => setScopeFilter(sc)}
+            >
+              {sc === 'ALL' ? 'All-India' : sc === 'Department' ? 'Central Ministries' : 'States & UTs'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Main Cockpit Navigation Tabs */}
@@ -117,7 +177,7 @@ export const GovernmentPage: React.FC = () => {
           onClick={() => setActiveTab('overview')}
         >
           <LayoutDashboard size={16} />
-          <span>Executive Overview</span>
+          <span>Executive Cockpit</span>
         </button>
 
         <button
@@ -171,7 +231,7 @@ export const GovernmentPage: React.FC = () => {
 
       {/* Tab Content */}
       {loading || !overview ? (
-        <LoadingSpinner label="Compiling CPGRAMS system intelligence..." />
+        <LoadingSpinner label="Compiling CPGRAMS system telemetry..." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {activeTab === 'overview' && (

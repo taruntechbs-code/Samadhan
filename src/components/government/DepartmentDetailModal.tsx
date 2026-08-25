@@ -4,10 +4,11 @@ import { Badge } from '../common/Badge';
 import { AgingBarChart } from '../common/Charts';
 import { MetricCard } from '../common/MetricCard';
 import { LoadingSpinner } from '../common/LoadingState';
+import { EvidenceBadge } from '../common/EvidenceBadge';
 import { fetchDepartmentInsights, fetchDepartmentByName } from '../../services/apiClient';
 import { DepartmentInsight } from '../../intelligence/types';
 import { DepartmentDetail } from '../../services/types';
-import { X, Building2, ExternalLink, Lightbulb, TrendingUp } from 'lucide-react';
+import { X, Building2, ExternalLink, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react';
 
 interface DepartmentDetailModalProps {
   entityName: string | null;
@@ -59,7 +60,7 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: '860px',
+          maxWidth: '880px',
           maxHeight: '92vh',
           overflowY: 'auto',
           borderRadius: 'var(--radius-dialog)',
@@ -83,38 +84,42 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Header Profile */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '16px',
-                    backgroundColor: 'var(--md-sys-color-primary-container)',
-                    color: 'var(--md-sys-color-on-primary-container)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Building2 size={28} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <div
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '16px',
+                      backgroundColor: 'var(--md-sys-color-primary-container)',
+                      color: 'var(--md-sys-color-on-primary-container)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Building2 size={28} />
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                      <span className="chip chip-secondary" style={{ fontSize: '0.75rem' }}>
+                        {detail.scope}
+                      </span>
+                      {insight && <Badge riskLevel={insight.risk.riskLevel} />}
+                      {insight && (
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
+                          Risk Score: {insight.risk.riskScore}/100
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="headline-medium" style={{ fontSize: '1.5rem', color: 'var(--md-sys-color-on-surface)' }}>
+                      {detail.entity}
+                    </h2>
+                  </div>
                 </div>
 
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem' }}>
-                    <span className="chip chip-secondary" style={{ fontSize: '0.75rem' }}>
-                      {detail.scope}
-                    </span>
-                    {insight && <Badge riskLevel={insight.risk.riskLevel} />}
-                    {insight && (
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant)' }}>
-                        Risk Score: {insight.risk.riskScore}/100
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="headline-medium" style={{ fontSize: '1.5rem', color: 'var(--md-sys-color-on-surface)' }}>
-                    {detail.entity}
-                  </h2>
-                </div>
+                {insight && <EvidenceBadge evidence={insight.evidence} label="Audit Evidence" />}
               </div>
 
               {/* Performance KPI Cards */}
@@ -142,14 +147,50 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
                 />
               </div>
 
+              {/* Risk Factor Breakdown Table if any points allocated */}
+              {insight && insight.risk.factors && insight.risk.factors.length > 0 && (
+                <div style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '1.25rem', borderRadius: '16px' }}>
+                  <h3 className="title-medium" style={{ fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <AlertCircle size={16} style={{ color: 'var(--md-sys-color-risk-critical)' }} />
+                    <span>Deterministic Risk Factor Audit</span>
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {insight.risk.factors.map((fac, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                          padding: '0.75rem 1rem',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '0.5rem',
+                          fontSize: '0.8125rem',
+                        }}
+                      >
+                        <div>
+                          <strong style={{ color: 'var(--md-sys-color-on-surface)' }}>{fac.explanation}</strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                            Observed: {fac.observed} &bull; Benchmark Threshold: {fac.threshold}
+                          </div>
+                        </div>
+                        <span className="chip chip-critical" style={{ fontSize: '0.75rem' }}>
+                          +{fac.points} Risk Pts
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Aging Breakdown & Appeals Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                {/* Aging Bar Chart */}
                 <div style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '1.25rem', borderRadius: 'var(--radius-card)' }}>
                   <AgingBarChart aging={detail.currentPeriod.agingBuckets} title="Pendency Aging Profile" />
                 </div>
 
-                {/* Appeals & Trend Insight */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {detail.appeals ? (
                     <div style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '1.25rem', borderRadius: 'var(--radius-card)' }}>
@@ -244,13 +285,13 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
                 }}
               >
                 <div>
-                  Source Dataset: <code>{detail.source.dataset}</code> &bull; {detail.source.sourceNote}
+                  Dataset: <code>{detail.source.dataset}</code> &bull; {detail.source.sourceNote}
                 </div>
                 <a
                   href={detail.source.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--md-sys-color-primary)', textDecoration: 'none', fontWeight: 500 }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--md-sys-color-primary)', textDecoration: 'none', fontWeight: 600 }}
                 >
                   <span>Verify at CPGRAMS Portal</span>
                   <ExternalLink size={12} />

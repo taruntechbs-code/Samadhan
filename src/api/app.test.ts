@@ -8,15 +8,30 @@ import request from 'supertest';
 import { app } from './app';
 
 describe('SAMADHAN API Endpoints', () => {
-  // 1. Health
+  // 1. Health & Metadata
   describe('GET /api/health', () => {
-    it('should return 200 with service status', async () => {
+    it('should return 200 with detailed telemetry and version info', async () => {
       const res = await request(app).get('/api/health');
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        status: 'ok',
-        service: 'samadhan-api',
-      });
+      expect(res.body.status).toBe('ok');
+      expect(res.body.service).toBe('samadhan-api');
+      expect(res.body.version).toBe('0.6.0');
+      expect(res.body.dataset.loaded).toBe(true);
+      expect(res.body.dataset.rows).toBe(2134);
+      expect(res.body.dataset.entitiesCount).toBe(278);
+    });
+  });
+
+  describe('GET /api/meta', () => {
+    it('should return 200 with complete system metadata and methodology', async () => {
+      const res = await request(app).get('/api/meta');
+      expect(res.status).toBe(200);
+      expect(res.body.name).toContain('SAMADHAN');
+      expect(res.body.event).toBe('Build What Moves India');
+      expect(res.body.totalRowsParsed).toBe(2134);
+      expect(res.body.reportingEntitiesCount).toBe(278);
+      expect(res.body.availableDatasets.length).toBe(8);
+      expect(res.body.methodology.riskScoring).toBeDefined();
     });
   });
 
@@ -31,11 +46,12 @@ describe('SAMADHAN API Endpoints', () => {
       expect(res.body.evidence.length).toBeGreaterThan(0);
     });
 
-    it('GET /api/intelligence/attention returns enriched risk and recommendations', async () => {
+    it('GET /api/intelligence/attention returns enriched risk with factors and recommendations', async () => {
       const res = await request(app).get('/api/intelligence/attention');
       expect(res.status).toBe(200);
       expect(res.body.totalCount).toBeGreaterThan(0);
       expect(res.body.items[0].riskScore).toBeDefined();
+      expect(res.body.items[0].factors).toBeDefined();
       expect(res.body.items[0].recommendations).toBeDefined();
       expect(res.body.items[0].evidence).toBeDefined();
     });
@@ -53,12 +69,13 @@ describe('SAMADHAN API Endpoints', () => {
     it('GET /api/intelligence/departments/:entity returns 404 for unknown department', async () => {
       const res = await request(app).get('/api/intelligence/departments/NonExistentDepartment');
       expect(res.status).toBe(404);
-      expect(res.body.error.code).toBe('NOT_FOUND');
+      expect(res.body.error.code).toBe('ENTITY_NOT_FOUND');
     });
 
     it('GET /api/intelligence/routing routes text with confidence & alternatives', async () => {
       const res = await request(app).get('/api/intelligence/routing?text=income%20tax%20refund%20delayed');
       expect(res.status).toBe(200);
+      expect(res.body.status).toBe('MATCHED');
       expect(res.body.detectedCategory).toBe('Income Tax & Direct Taxation');
       expect(res.body.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
       expect(res.body.confidence).toBeGreaterThan(0.6);
@@ -68,7 +85,7 @@ describe('SAMADHAN API Endpoints', () => {
     it('GET /api/intelligence/routing returns 400 when text query parameter is missing', async () => {
       const res = await request(app).get('/api/intelligence/routing');
       expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('MISSING_QUERY_TEXT');
+      expect(res.body.error.code).toBe('ROUTING_INPUT_REQUIRED');
     });
 
     it('GET /api/intelligence/trends/:entity returns trend insights', async () => {
@@ -120,6 +137,12 @@ describe('SAMADHAN API Endpoints', () => {
         expect(d.currentDisposalRate).toBeGreaterThanOrEqual(95);
       }
     });
+
+    it('should return 400 for invalid disposal rate parameter', async () => {
+      const res = await request(app).get('/api/departments?minDisposalRate=150');
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_PARAMETER');
+    });
   });
 
   // 5. Department Ranking
@@ -135,13 +158,13 @@ describe('SAMADHAN API Endpoints', () => {
     it('should return 400 for invalid sortBy parameter', async () => {
       const res = await request(app).get('/api/departments/ranking?sortBy=invalid_metric');
       expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('INVALID_SORT_KEY');
+      expect(res.body.error.code).toBe('INVALID_PARAMETER');
     });
 
     it('should return 400 for invalid order parameter', async () => {
       const res = await request(app).get('/api/departments/ranking?sortBy=received&order=diagonal');
       expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('INVALID_ORDER');
+      expect(res.body.error.code).toBe('INVALID_PARAMETER');
     });
   });
 
@@ -160,7 +183,7 @@ describe('SAMADHAN API Endpoints', () => {
     it('should return 404 for unknown department', async () => {
       const res = await request(app).get('/api/departments/Unknown%20Department%20XYZ');
       expect(res.status).toBe(404);
-      expect(res.body.error.code).toBe('NOT_FOUND');
+      expect(res.body.error.code).toBe('ENTITY_NOT_FOUND');
     });
   });
 
@@ -267,7 +290,7 @@ describe('SAMADHAN API Endpoints', () => {
     it('should return 400 for invalid/unknown metric', async () => {
       const res = await request(app).get('/api/metrics/non_existent_metric');
       expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('INVALID_METRIC');
+      expect(res.body.error.code).toBe('METRIC_NOT_FOUND');
     });
   });
 

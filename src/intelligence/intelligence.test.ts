@@ -28,14 +28,18 @@ describe('Actionable Intelligence Engine', () => {
 
   // 1. Risk Engine
   describe('Risk Engine (calculateDepartmentRisk)', () => {
-    it('should assign CRITICAL risk with explainable reasons to low disposal rate entities', () => {
+    it('should assign CRITICAL risk with explainable causal factors and evidence', () => {
       const lowDisposalMetric = service.getDepartmentRanking('disposalRate', 'asc')[0]; // Manipur (2.51%)
       const risk = calculateDepartmentRisk(lowDisposalMetric);
 
       expect(risk.riskLevel).toBe('CRITICAL');
       expect(risk.riskScore).toBeGreaterThanOrEqual(45);
       expect(risk.reasons.length).toBeGreaterThan(0);
-      expect(risk.reasons[0]).toContain('below critical operational threshold');
+      expect(risk.factors.length).toBeGreaterThan(0);
+      expect(risk.factors[0].metric).toBe('disposalRate');
+      expect(risk.factors[0].observed).toBe(2.51);
+      expect(risk.factors[0].threshold).toBe(50);
+      expect(risk.factors[0].points).toBe(45);
       expect(risk.evidence.length).toBeGreaterThan(0);
 
       // Verify evidence structure
@@ -45,16 +49,17 @@ describe('Actionable Intelligence Engine', () => {
       expect(rateEvidence!.sourceUrl).toBeTruthy();
     });
 
-    it('should assign LOW risk to high-performing departments', () => {
+    it('should assign LOW risk to high-performing departments with 0 factor penalties', () => {
       const topMetric = service.getDepartmentRanking('disposalRate', 'desc')[0]; // Official Language (100%)
       const risk = calculateDepartmentRisk(topMetric);
 
       expect(risk.riskLevel).toBe('LOW');
       expect(risk.riskScore).toBeLessThan(15);
       expect(risk.reasons[0]).toContain('healthy');
+      expect(risk.factors.length).toBe(0);
     });
 
-    it('should flag >1-year pendency as high/critical risk if present', () => {
+    it('should flag >1-year pendency with explicit factor points', () => {
       const syntheticRecord = {
         entity: 'Sample Test Department',
         scope: 'Department',
@@ -78,6 +83,9 @@ describe('Actionable Intelligence Engine', () => {
       const risk = calculateDepartmentRisk(syntheticRecord);
       expect(risk.riskLevel).toBe('CRITICAL');
       expect(risk.reasons.some(r => r.includes('exceeded 1 year'))).toBe(true);
+      const yrFactor = risk.factors.find(f => f.metric === 'pending_more_than_1_year');
+      expect(yrFactor).toBeDefined();
+      expect(yrFactor!.points).toBe(35);
     });
   });
 
@@ -144,9 +152,10 @@ describe('Actionable Intelligence Engine', () => {
 
   // 5. Citizen Routing Engine
   describe('Citizen Routing Engine (routeGrievanceText)', () => {
-    it('should route tax problems to CBDT (Income Tax)', () => {
+    it('should route tax problems to CBDT (Income Tax) with MATCHED status', () => {
       const result = routeGrievanceText('My ITR income tax refund is pending for 6 months');
 
+      expect(result.status).toBe('MATCHED');
       expect(result.detectedCategory).toBe('Income Tax & Direct Taxation');
       expect(result.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
       expect(result.confidence).toBeGreaterThan(0.6);
@@ -158,6 +167,7 @@ describe('Actionable Intelligence Engine', () => {
     it('should route banking/ATM complaints to Financial Services (Banking Division)', () => {
       const result = routeGrievanceText('Money debited from ATM but cash not dispensed, UPI payment failed');
 
+      expect(result.status).toBe('MATCHED');
       expect(result.detectedCategory).toBe('Banking & Financial Services');
       expect(result.recommendedEntity).toBe('Financial Services (Banking Division)');
       expect(result.confidence).toBeGreaterThan(0.7);
@@ -166,6 +176,7 @@ describe('Actionable Intelligence Engine', () => {
     it('should route railway grievances to Railway Board', () => {
       const result = routeGrievanceText('IRCTC train tatkal ticket cancelled but refund not credited');
 
+      expect(result.status).toBe('MATCHED');
       expect(result.detectedCategory).toBe('Railways & Train Services');
       expect(result.recommendedEntity).toBe('Railway Board');
     });
@@ -173,13 +184,15 @@ describe('Actionable Intelligence Engine', () => {
     it('should route passport problems to External Affairs', () => {
       const result = routeGrievanceText('Passport renewal application delayed at seva kendra');
 
+      expect(result.status).toBe('MATCHED');
       expect(result.detectedCategory).toBe('External Affairs, Passport & Visa');
       expect(result.recommendedEntity).toBe('External Affairs');
     });
 
-    it('should handle unclassifiable problem with confidence 0 and null entity', () => {
+    it('should handle unclassifiable problem with UNCATEGORIZED status and 0 confidence', () => {
       const result = routeGrievanceText('The quantum mechanics equation has an anomalous gravitational ripple');
 
+      expect(result.status).toBe('UNCATEGORIZED');
       expect(result.recommendedEntity).toBeNull();
       expect(result.confidence).toBe(0);
       expect(result.detectedCategory).toContain('Uncategorized');
@@ -187,6 +200,7 @@ describe('Actionable Intelligence Engine', () => {
 
     it('should handle empty input safely', () => {
       const result = routeGrievanceText('   ');
+      expect(result.status).toBe('UNCATEGORIZED');
       expect(result.recommendedEntity).toBeNull();
       expect(result.confidence).toBe(0);
     });

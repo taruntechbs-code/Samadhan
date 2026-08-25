@@ -4,7 +4,7 @@ import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import { RoutingRecommendation } from '../../intelligence/types';
 import { saveCitizenGrievance, CitizenGrievanceRecord } from '../../services/apiClient';
-import { X, CheckCircle, ArrowRight, Building2, FileCheck } from 'lucide-react';
+import { X, CheckCircle, ArrowRight, Building2, FileCheck, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface GrievanceSubmitModalProps {
@@ -129,16 +129,14 @@ export const GrievanceSubmitModal: React.FC<GrievanceSubmitModalProps> = ({
                 <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--md-sys-color-on-surface-variant)' }}>
                   Applicant Full Name *
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    required
-                    className="input-filled"
-                    placeholder="e.g. Ramesh Kumar"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  className="input-filled"
+                  placeholder="e.g. Ramesh Kumar"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                />
               </div>
 
               <div className="input-container">
@@ -166,6 +164,12 @@ export const GrievanceSubmitModal: React.FC<GrievanceSubmitModalProps> = ({
                   value={location}
                   onChange={e => setLocation(e.target.value)}
                 />
+              </div>
+
+              {/* Prototype Disclosure Notice */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                <Info size={14} style={{ color: 'var(--md-sys-color-primary)', flexShrink: 0 }} />
+                <span>Demo mode: Saves reference ID to local browser session for end-to-end workflow simulation.</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
@@ -198,10 +202,10 @@ export const GrievanceSubmitModal: React.FC<GrievanceSubmitModalProps> = ({
 
               <div>
                 <h2 className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                  Grievance Lodged Successfully!
+                  Grievance Lodged (Demo Reference)
                 </h2>
                 <p style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                  Your grievance has been auto-allocated to the nodal officer at <strong>{submittedRecord.routedEntity}</strong>.
+                  Auto-allocated to the nodal officer cell at <strong>{submittedRecord.routedEntity}</strong>.
                 </p>
               </div>
 
@@ -223,7 +227,7 @@ export const GrievanceSubmitModal: React.FC<GrievanceSubmitModalProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', width: '100%', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button
                   variant="filled"
                   onClick={() => {

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { GrievanceInputHero } from '../components/citizen/GrievanceInputHero';
 import { GrievanceSubmitModal } from '../components/citizen/GrievanceSubmitModal';
+import { SamadhanJourney } from '../components/citizen/SamadhanJourney';
 import { RoutingRecommendation } from '../intelligence/types';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { Badge } from '../components/common/Badge';
 import {
   Search,
   Zap,
@@ -21,11 +21,17 @@ export const HomePage: React.FC = () => {
   const [selectedRouting, setSelectedRouting] = useState<RoutingRecommendation | null>(null);
   const [grievanceText, setGrievanceText] = useState('');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [activeScenarioQuery, setActiveScenarioQuery] = useState<string | undefined>(undefined);
 
   const handleOpenSubmit = (routing: RoutingRecommendation, text: string) => {
     setSelectedRouting(routing);
     setGrievanceText(text);
     setIsSubmitModalOpen(true);
+  };
+
+  const handleTriggerScenario = (query: string) => {
+    setActiveScenarioQuery(query);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const CATEGORIES = [
@@ -38,92 +44,14 @@ export const HomePage: React.FC = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem', paddingBottom: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem', paddingBottom: '2.5rem' }}>
       {/* Hero Section */}
-      <GrievanceInputHero onOpenSubmitModal={handleOpenSubmit} />
+      <GrievanceInputHero
+        onOpenSubmitModal={handleOpenSubmit}
+        externalQuery={activeScenarioQuery}
+      />
 
-      {/* How SAMADHAN Works */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'center', alignItems: 'center' }}>
-        <Badge type="primary">
-          <span>Seamless 3-Step Redressal</span>
-        </Badge>
-        <h2 className="headline-large" style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.25rem)' }}>
-          How SAMADHAN Solves Civic Grievances
-        </h2>
-        <p className="body-medium" style={{ maxWidth: '580px', color: 'var(--md-sys-color-on-surface-variant)' }}>
-          A modern interface that bridges the gap between everyday citizen issues and specialized government jurisdictions.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', width: '100%', marginTop: '1rem' }}>
-          <Card variant="standard" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--md-sys-color-primary-container)',
-                color: 'var(--md-sys-color-on-primary-container)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-              }}
-            >
-              1
-            </div>
-            <h3 className="title-medium">Express in Everyday Words</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Type or speak your problem freely. No need to know ministry acronyms, nodal codes, or administrative hierarchies.
-            </p>
-          </Card>
-
-          <Card variant="standard" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--md-sys-color-secondary-container)',
-                color: 'var(--md-sys-color-on-secondary-container)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-              }}
-            >
-              2
-            </div>
-            <h3 className="title-medium">Intelligent Authority Routing</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Our routing engine matches your grievance against 278 real public authorities with verified jurisdictional precision.
-            </p>
-          </Card>
-
-          <Card variant="standard" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                color: 'var(--md-sys-color-on-tertiary-container)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-              }}
-            >
-              3
-            </div>
-            <h3 className="title-medium">Transparent Live Tracking</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Receive an official reference number (SAM-2026-XXXX) with step-by-step progress, officer assignment, and SLA timers.
-            </p>
-          </Card>
-        </div>
-      </div>
-
-      {/* Quick Category Starters */}
+      {/* Frequently Lodged Categories */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
@@ -151,19 +79,7 @@ export const HomePage: React.FC = () => {
                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
               }}
               onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                handleOpenSubmit(
-                  {
-                    queryText: cat.query,
-                    detectedCategory: cat.title,
-                    recommendedEntity: cat.title.includes('Income') ? 'Central Board of Direct Taxes (Income Tax)' : cat.title.includes('Rail') ? 'Railway Board' : 'Labour and Employment',
-                    confidence: 0.88,
-                    matchReason: `Auto-categorized under ${cat.title}`,
-                    alternativeCandidates: [],
-                    disclaimer: 'Prototype routing — not an official CPGRAMS routing decision.',
-                  },
-                  cat.query
-                );
+                handleTriggerScenario(cat.query);
               }}
             >
               <div
@@ -185,13 +101,16 @@ export const HomePage: React.FC = () => {
                   {cat.title}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-                  Click to lodge
+                  Click to pre-fill
                 </div>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Complete SAMADHAN Journey & Before-After Transformation */}
+      <SamadhanJourney onTriggerScenario={handleTriggerScenario} />
 
       {/* Submission Dialog Modal */}
       <GrievanceSubmitModal

@@ -2,8 +2,9 @@ import React from 'react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { EvidenceBadge } from '../common/EvidenceBadge';
 import { AlertCircle, ShieldAlert, ChevronRight } from 'lucide-react';
-import { RiskLevel } from '../../intelligence/types';
+import { RiskFactor, RiskLevel } from '../../intelligence/types';
 
 export interface AttentionActionItem {
   entity: string;
@@ -12,11 +13,21 @@ export interface AttentionActionItem {
   severity: 'CRITICAL' | 'WARNING' | 'NORMAL';
   riskScore: number;
   reasons: string[];
+  factors?: RiskFactor[];
   recommendations: Array<{
     priority: string;
     action: string;
     rationale: string;
     targetMetric: string;
+  }>;
+  evidence: Array<{
+    dataset: string;
+    entity: string;
+    metric: string;
+    value: number | string;
+    period: string;
+    sourceUrl: string;
+    sourceNote: string;
   }>;
 }
 
@@ -57,13 +68,15 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
           </div>
         </div>
 
-        <span className="chip chip-critical">
-          <span>{items.length} Authorities Flagged</span>
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span className="chip chip-critical">
+            <span>{items.length} Flagged Authorities</span>
+          </span>
+        </div>
       </div>
 
       {/* Action Items List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {items.map((item, idx) => {
           const riskLevel: RiskLevel = item.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH';
           const primaryRec = item.recommendations[0];
@@ -73,72 +86,72 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
               key={idx}
               style={{
                 backgroundColor: 'var(--md-sys-color-surface-container-low)',
-                borderRadius: '18px',
-                padding: '1.25rem 1.5rem',
+                borderRadius: '20px',
+                padding: '1.5rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem',
-                borderLeft: `4px solid ${item.severity === 'CRITICAL' ? 'var(--md-sys-color-risk-critical)' : 'var(--md-sys-color-risk-high)'}`,
+                gap: '1rem',
+                borderLeft: `5px solid ${item.severity === 'CRITICAL' ? 'var(--md-sys-color-risk-critical)' : 'var(--md-sys-color-risk-high)'}`,
               }}
             >
-              {/* Header: Entity Name + Badges + Inspect Button */}
+              {/* Header: WHAT & HOW SERIOUS */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <h4 className="title-medium" style={{ fontSize: '1.125rem', color: 'var(--md-sys-color-on-surface)' }}>
+                  <h4 className="title-medium" style={{ fontSize: '1.1875rem', color: 'var(--md-sys-color-on-surface)' }}>
                     {item.entity}
                   </h4>
                   <span className="chip chip-secondary" style={{ fontSize: '0.75rem' }}>
                     {item.scope}
                   </span>
                   <Badge riskLevel={riskLevel} />
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
+                    Score: {item.riskScore}/100
+                  </span>
                 </div>
 
-                <Button
-                  variant="tonal"
-                  style={{ minHeight: '36px', padding: '0.35rem 0.85rem', fontSize: '0.8125rem' }}
-                  onClick={() => onSelectDepartment(item.entity)}
-                >
-                  <span>Inspect Audit Profile</span>
-                  <ChevronRight size={16} />
-                </Button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <EvidenceBadge evidence={item.evidence} />
+                  <Button
+                    variant="tonal"
+                    style={{ minHeight: '36px', padding: '0.35rem 0.85rem', fontSize: '0.8125rem' }}
+                    onClick={() => onSelectDepartment(item.entity)}
+                  >
+                    <span>Inspect Profile</span>
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
               </div>
 
-              {/* Reasons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Why this authority was flagged:
-                </span>
-                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface)' }}>
-                  {item.reasons.map((r, i) => (
-                    <li key={i}>{r}</li>
-                  ))}
-                </ul>
-              </div>
+              {/* 3-Column Structured Breakdown: WHAT? WHY? WHAT SHOULD BE DONE? */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                {/* WHY IT WAS FLAGGED */}
+                <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-surface-container)' }}>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    WHY THIS AUTHORITY WAS FLAGGED
+                  </span>
+                  <ul style={{ paddingLeft: '1.125rem', fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface)', marginTop: '0.35rem' }}>
+                    {item.reasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                </div>
 
-              {/* Recommended Action */}
-              {primaryRec && (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                    borderRadius: '12px',
-                    padding: '0.75rem 1rem',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.625rem',
-                    border: '1px solid var(--md-sys-color-outline-variant)',
-                  }}
-                >
-                  <AlertCircle size={16} style={{ color: 'var(--md-sys-color-primary)', marginTop: '2px', flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
-                      RECOMMENDED OPERATIONAL ACTION ({primaryRec.priority})
+                {/* WHAT SHOULD BE DONE */}
+                {primaryRec && (
+                  <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-surface-container)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--md-sys-color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <AlertCircle size={12} />
+                      <span>RECOMMENDED OPERATIONAL ACTION ({primaryRec.priority})</span>
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface)', marginTop: '0.15rem' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)', marginTop: '0.35rem' }}>
                       {primaryRec.action}
                     </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.2rem' }}>
+                      {primaryRec.rationale}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           );
         })}

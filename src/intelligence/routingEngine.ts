@@ -3,7 +3,7 @@
  * Transparent, explainable keyword-and-category routing to dataset-verified public authorities.
  */
 
-import { RoutingRecommendation, CandidateEntityMatch } from './types';
+import { RoutingRecommendation, CandidateEntityMatch, RoutingStatus } from './types';
 
 interface RoutingCategoryRule {
   category: string;
@@ -16,77 +16,77 @@ interface RoutingCategoryRule {
 const ROUTING_RULES: RoutingCategoryRule[] = [
   {
     category: 'Banking & Financial Services',
-    keywords: ['bank', 'banking', 'atm', 'loan', 'credit card', 'debit card', 'upi', 'financial fraud', 'savings account', 'cheque', 'emi', 'net banking', 'interest rate'],
+    keywords: ['bank', 'banking', 'atm', 'loan', 'credit card', 'debit card', 'upi', 'financial fraud', 'savings account', 'cheque', 'emi', 'net banking', 'interest rate', 'fixed deposit', 'chargeback'],
     primaryEntity: 'Financial Services (Banking Division)',
     alternatives: ['Central Board of Direct Taxes (Income Tax)', 'Economic Affairs'],
-    explanation: 'Keywords match financial, banking transactions, loans, or payment disputes.',
+    explanation: 'Keywords match banking transactions, ATM failures, loan disputes, or electronic payments.',
   },
   {
     category: 'Income Tax & Direct Taxation',
-    keywords: ['income tax', 'tax', 'it return', 'itr', 'pan card', 'refund', 'tds', 'tax assessment', 'form 16', 'direct tax'],
+    keywords: ['income tax', 'tax', 'it return', 'itr', 'pan card', 'refund', 'tds', 'tax assessment', 'form 16', 'direct tax', 'advance tax', 'challan'],
     primaryEntity: 'Central Board of Direct Taxes (Income Tax)',
     alternatives: ['Central Board of Indirect Taxes and Customs', 'Revenue'],
     explanation: 'Keywords match direct taxation, income tax return filing, PAN cards, or tax refunds.',
   },
   {
     category: 'GST & Indirect Taxes / Customs',
-    keywords: ['gst', 'customs', 'cgst', 'igst', 'sgst', 'excise', 'import duty', 'export duty', 'cargo clearance', 'tariff'],
+    keywords: ['gst', 'customs', 'cgst', 'igst', 'sgst', 'excise', 'import duty', 'export duty', 'cargo clearance', 'tariff', 'tax invoice'],
     primaryEntity: 'Central Board of Indirect Taxes and Customs',
     alternatives: ['Central Board of Direct Taxes (Income Tax)', 'Commerce'],
     explanation: 'Keywords match indirect taxes, GST registration, tax credits, or customs clearance.',
   },
   {
     category: 'Railways & Train Services',
-    keywords: ['railway', 'train', 'irctc', 'pnr', 'berth', 'coach', 'station', 'tatkal', 'ticket', 'locomotive', 'rail ticket'],
+    keywords: ['railway', 'train', 'irctc', 'pnr', 'berth', 'coach', 'station', 'tatkal', 'ticket', 'locomotive', 'rail ticket', 'platform', 'train cancellation'],
     primaryEntity: 'Railway Board',
     alternatives: ['Road Transport and Highways'],
     explanation: 'Keywords match Indian Railways ticketing, coach maintenance, station facilities, or passenger amenities.',
   },
   {
     category: 'Telecommunications & Broadband',
-    keywords: ['telecom', 'sim card', 'broadband', 'bsnl', 'mtnl', 'mobile network', 'call drop', 'spectrum', '4g', '5g', 'telephone', 'tower'],
+    keywords: ['telecom', 'sim card', 'broadband', 'bsnl', 'mtnl', 'mobile network', 'call drop', 'spectrum', '4g', '5g', 'telephone', 'tower', 'fiber'],
     primaryEntity: 'Telecommunications',
     alternatives: ['Electronics & Information Technology', 'Posts'],
     explanation: 'Keywords match telecom networks, mobile connectivity, ISP services, or BSNL/MTNL infrastructure.',
   },
   {
     category: 'Postal & Delivery Services',
-    keywords: ['post office', 'speed post', 'parcel', 'dak', 'pin code', 'registered post', 'postal order', 'money order'],
+    keywords: ['post office', 'speed post', 'parcel', 'dak', 'pin code', 'registered post', 'postal order', 'money order', 'india post'],
     primaryEntity: 'Posts',
     alternatives: ['Telecommunications'],
     explanation: 'Keywords match India Post mail delivery, parcel tracking, savings bank, or speed post services.',
   },
   {
     category: 'Labour, EPFO & Pensions',
-    keywords: ['epfo', 'provident fund', 'pension', 'gratuity', 'salary', 'unpaid wage', 'labour welfare', 'esic', 'workplace dispute', 'uan number'],
+    keywords: ['epfo', 'provident fund', 'pension', 'gratuity', 'salary', 'unpaid wage', 'labour welfare', 'esic', 'workplace dispute', 'uan number', 'pf transfer', 'retirement benefit'],
     primaryEntity: 'Labour and Employment',
     alternatives: ['Personnel, Public Grievances and Pensions', 'Financial Services (Banking Division)'],
     explanation: 'Keywords match employee provident fund (EPFO), ESIC healthcare, pensions, or labour welfare.',
   },
   {
     category: 'External Affairs, Passport & Visa',
-    keywords: ['passport', 'visa', 'embassy', 'consulate', 'nri', 'overseas', 'mea', 'emigration', 'foreign travel'],
+    keywords: ['passport', 'visa', 'embassy', 'consulate', 'nri', 'overseas', 'mea', 'emigration', 'foreign travel', 'passport seva'],
     primaryEntity: 'External Affairs',
     alternatives: ['Home Affairs'],
     explanation: 'Keywords match Passport Seva Kendra operations, visa facilitation, embassy assistance, or consular support.',
   },
   {
     category: 'Road Transport & National Highways',
-    keywords: ['highway', 'toll plaza', 'fastag', 'driving licence', 'driving license', 'national highway', 'nhai', 'vahan', 'sarathi', 'pothole'],
+    keywords: ['highway', 'toll plaza', 'fastag', 'driving licence', 'driving license', 'national highway', 'nhai', 'vahan', 'sarathi', 'pothole', 'road safety'],
     primaryEntity: 'Road Transport and Highways',
     alternatives: ['Railway Board'],
     explanation: 'Keywords match national highways, Fastag toll plaza operations, driving licences, or Vahan registrations.',
   },
   {
     category: 'Education & Academic Institutions',
-    keywords: ['school', 'college', 'university', 'ugc', 'cbse', 'exam fee', 'student scholarship', 'neet', 'jee', 'degree certificate', 'college admission'],
+    keywords: ['school', 'college', 'university', 'ugc', 'cbse', 'exam fee', 'student scholarship', 'neet', 'jee', 'degree certificate', 'college admission', 'aicte'],
     primaryEntity: 'Higher Education',
     alternatives: ['School Education and Literacy'],
     explanation: 'Keywords match university administration, higher educational institutions, entrance examinations, or degrees.',
   },
   {
     category: 'Health & Family Welfare',
-    keywords: ['hospital', 'doctor', 'medicine supply', 'aiims', 'medical treatment', 'vaccine', 'health center', 'clinic', 'ayushman'],
+    keywords: ['hospital', 'doctor', 'medicine supply', 'aiims', 'medical treatment', 'vaccine', 'health center', 'clinic', 'ayushman', 'cghs', 'medical negligence'],
     primaryEntity: 'Health & Family Welfare',
     alternatives: ['Ayush', 'Pharmaceuticals'],
     explanation: 'Keywords match public healthcare centers, central government hospitals (AIIMS), medicine availability, or healthcare schemes.',
@@ -100,28 +100,28 @@ const ROUTING_RULES: RoutingCategoryRule[] = [
   },
   {
     category: 'Housing & Urban Affairs',
-    keywords: ['builder fraud', 'rera', 'pradhan mantri awas', 'pmay', 'municipality', 'urban housing', 'slum redevelopment', 'smart city'],
+    keywords: ['builder fraud', 'rera', 'pradhan mantri awas', 'pmay', 'municipality', 'urban housing', 'slum redevelopment', 'smart city', 'property handover'],
     primaryEntity: 'Housing and Urban Affairs',
     alternatives: ['Rural Development'],
     explanation: 'Keywords match urban development, housing schemes (PMAY-U), RERA regulations, or smart city projects.',
   },
   {
     category: 'Agriculture & Farmers Welfare',
-    keywords: ['farmer', 'crop loss', 'kisan', 'pm kisan', 'fertilizer subsidy', 'seed quality', 'msp payment', 'agriculture loan', 'drought relief'],
+    keywords: ['farmer', 'crop loss', 'kisan', 'pm kisan', 'fertilizer subsidy', 'seed quality', 'msp payment', 'agriculture loan', 'drought relief', 'soil health'],
     primaryEntity: 'Department of Agriculture and Farmers Welfare',
     alternatives: ['Chemicals and Petrochemicals', 'Rural Development'],
     explanation: 'Keywords match agricultural subsidies, PM-Kisan DBT transfers, crop compensation, or farming inputs.',
   },
   {
     category: 'Power & Energy Distribution',
-    keywords: ['electricity', 'power cut', 'electric meter', 'bijli', 'voltage fluctuation', 'discom', 'power substation', 'transformer issue', 'power grid'],
+    keywords: ['electricity', 'power cut', 'electric meter', 'bijli', 'voltage fluctuation', 'discom', 'power substation', 'transformer issue', 'power grid', 'smart meter'],
     primaryEntity: 'Power',
     alternatives: ['New and Renewable Energy'],
     explanation: 'Keywords match electrical power grid, transmission lines, smart metering, or electricity supply disputes.',
   },
   {
     category: 'Petroleum & Cooking Gas',
-    keywords: ['lpg cylinder', 'petrol pump', 'diesel supply', 'cng filling', 'indane gas', 'bharat gas', 'hp gas', 'gas pipeline', 'gas agency', 'ujjwala'],
+    keywords: ['lpg cylinder', 'petrol pump', 'diesel supply', 'cng filling', 'indane gas', 'bharat gas', 'hp gas', 'gas pipeline', 'gas agency', 'ujjwala', 'gas subsidy'],
     primaryEntity: 'Petroleum and Natural Gas',
     alternatives: ['Power'],
     explanation: 'Keywords match LPG cylinder distribution (Indane, HP, Bharat Gas), fuel pump operations, or Ujjwala Yojana.',
@@ -132,19 +132,19 @@ const ROUTING_DISCLAIMER =
   'Prototype routing — not an official CPGRAMS routing decision. Final grievance allocation is subject to administrative review.';
 
 function matchesKeyword(text: string, keyword: string): boolean {
-  // Use regex with word boundaries to prevent matching inside unrelated words
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`\\b${escaped}\\b`, 'i');
   return regex.test(text);
 }
 
 /**
- * Routes raw grievance text to candidate public authority entities.
+ * Routes raw citizen grievance text to candidate public authority entities.
  */
 export function routeGrievanceText(queryText: string): RoutingRecommendation {
   if (!queryText || typeof queryText !== 'string' || queryText.trim() === '') {
     return {
       queryText: '',
+      status: 'UNCATEGORIZED',
       detectedCategory: 'Unclassified',
       recommendedEntity: null,
       confidence: 0,
@@ -156,7 +156,6 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
 
   const normalized = queryText.toLowerCase().trim();
 
-  // Score each rule based on matched keyword frequency and length
   let bestMatch: RoutingCategoryRule | null = null;
   let bestScore = 0;
   const matchScores: Array<{ rule: RoutingCategoryRule; score: number; matchedKeywords: string[] }> = [];
@@ -185,6 +184,7 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
   if (!bestMatch || bestScore === 0) {
     return {
       queryText,
+      status: 'UNCATEGORIZED',
       detectedCategory: 'General Administrative / Uncategorized',
       recommendedEntity: null,
       confidence: 0,
@@ -194,13 +194,13 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     };
   }
 
-  // Calculate normalized confidence (0.55 to 0.95 depending on match richness)
-  const confidence = Number(Math.min(0.55 + bestScore * 0.15, 0.95).toFixed(2));
+  // Calibration: Minimum 0.55 up to 0.95 based on keyword richness
+  const rawConfidence = Math.min(0.55 + bestScore * 0.12, 0.95);
+  const confidence = Number(rawConfidence.toFixed(2));
+  const status: RoutingStatus = confidence >= 0.5 ? 'MATCHED' : 'NEEDS_REVIEW';
 
-  // Build alternatives list
   const alternatives: CandidateEntityMatch[] = [];
   
-  // Add direct rule alternatives
   for (const alt of bestMatch.alternatives) {
     alternatives.push({
       entity: alt,
@@ -209,7 +209,6 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     });
   }
 
-  // Add runner-up categories if any
   const sortedRunners = matchScores
     .filter(m => m.rule.category !== bestMatch!.category)
     .sort((a, b) => b.score - a.score);
@@ -227,6 +226,7 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
 
   return {
     queryText,
+    status,
     detectedCategory: bestMatch.category,
     recommendedEntity: bestMatch.primaryEntity,
     confidence,
