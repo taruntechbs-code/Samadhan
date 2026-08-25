@@ -112,6 +112,7 @@ export interface RoutingRecommendation {
   recommendedEntity: string | null;
   confidence: number; // 0.0 to 1.0
   matchReason: string;
+  missingInfoGuidance?: string;
   alternativeCandidates: CandidateEntityMatch[];
   disclaimer: string;
   facilityContextAvailable?: boolean;

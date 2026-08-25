@@ -12,7 +12,8 @@ import { DepartmentRisk, EvidenceReference, RiskFactor, RiskLevel } from './type
 export function calculateDepartmentRisk(
   metric: PeriodDepartmentMetrics,
   sourceUrl: string = 'https://pgportal.gov.in/darpgdashboard',
-  sourceNote: string = 'Official CPGRAMS verified metrics dataset.'
+  sourceNote: string = 'Official CPGRAMS verified metrics dataset.',
+  historicalBaselineRate?: number
 ): DepartmentRisk {
   const reasons: string[] = [];
   const factors: RiskFactor[] = [];
@@ -186,6 +187,37 @@ export function calculateDepartmentRisk(
       explanation,
       evidence: pendEvidence,
     });
+  }
+
+  // 5. Optional Historical Deterioration Factor
+  if (historicalBaselineRate !== undefined && historicalBaselineRate > 0) {
+    const variance = Number((rate - historicalBaselineRate).toFixed(2));
+    if (variance <= -5.0) {
+      const points = variance <= -10.0 ? 15 : 10;
+      score += points;
+      const explanation = `Disposal velocity (${rate}%) exhibits material historical deterioration compared to 10-year baseline (${historicalBaselineRate}% by ${variance} pp).`;
+      reasons.push(explanation);
+
+      const histEvidence: EvidenceReference = {
+        dataset: 'department_history_2016_2026-02-28',
+        entity: metric.entity,
+        metric: 'historical_disposal_baseline',
+        value: `${historicalBaselineRate}% baseline`,
+        period: '2016-01-01 to 2026-02-28',
+        sourceUrl: 'https://www.data.gov.in/resource/department-wise-receipts-disposal-and-pendency-public-grievance-detailed-statistics',
+        sourceNote: 'DARPG 10-year longitudinal historical baseline.',
+      };
+      evidence.push(histEvidence);
+
+      factors.push({
+        metric: 'historicalDeterioration',
+        observed: rate,
+        threshold: historicalBaselineRate,
+        points,
+        explanation,
+        evidence: histEvidence,
+      });
+    }
   }
 
   // Determine Final Deterministic Risk Tier

@@ -17,6 +17,13 @@ import {
   SystemMetadata,
 } from '../intelligence';
 import { searchFacilities, getFacilityById } from '../data/facilityDirectory';
+import { getAllDatasets } from '../data/datasetRegistry';
+import {
+  getDepartmentHistoricalComparison,
+  getAllHistoricalComparisons,
+  getHistoricalSystemOverview,
+} from '../data/cpgramsHistorical';
+import { getMunicipalCaseStudy } from '../data/municipal/pcmc';
 
 export const apiRouter = Router();
 
@@ -620,4 +627,166 @@ apiRouter.get('/facilities/:id', (req: Request, res: Response) => {
     facility,
   });
 });
+
+// ==========================================
+// 14. DATASET REGISTRY & PROVENANCE
+// ==========================================
+
+// GET /api/datasets
+apiRouter.get('/datasets', (_req: Request, res: Response) => {
+  const datasets = getAllDatasets();
+  res.json({
+    total: datasets.length,
+    datasets,
+  });
+});
+
+// ==========================================
+// 15. HISTORICAL INTELLIGENCE & BASELINES
+// ==========================================
+
+// GET /api/historical/overview
+apiRouter.get('/historical/overview', (_req: Request, res: Response) => {
+  const service = getServerCpgramsService();
+  const overview = getHistoricalSystemOverview(service);
+  res.json({
+    source: 'cpgrams_historical_10yr',
+    overview,
+  });
+});
+
+// GET /api/historical/trends
+apiRouter.get('/historical/trends', (req: Request, res: Response) => {
+  const service = getServerCpgramsService();
+  let comparisons = getAllHistoricalComparisons(service);
+
+  const rawTrend = req.query.trend;
+  const trendParam = (typeof rawTrend === 'string' ? rawTrend : Array.isArray(rawTrend) ? rawTrend[0] : '') as string;
+  if (trendParam) {
+    const validTrends = ['IMPROVING', 'STABLE', 'DETERIORATING', 'INSUFFICIENT_HISTORY'];
+    if (!validTrends.includes(trendParam.toUpperCase())) {
+      res.status(400).json({
+        error: {
+          code: 'INVALID_PARAMETER',
+          message: `Trend must be one of: ${validTrends.join(', ')}`,
+        },
+      });
+      return;
+    }
+    comparisons = comparisons.filter(c => c.trend === trendParam.toUpperCase());
+  }
+
+  const rawLimit = req.query.limit;
+  const limitParam = parseNumberQuery(typeof rawLimit === 'string' ? rawLimit : Array.isArray(rawLimit) ? rawLimit[0] : undefined, 1, 100);
+  if (limitParam.error) {
+    res.status(400).json({ error: { code: 'INVALID_PARAMETER', message: limitParam.error } });
+    return;
+  }
+
+  const limit = limitParam.value || 50;
+  res.json({
+    source: 'cpgrams_historical_10yr',
+    total: comparisons.length,
+    limit,
+    results: comparisons.slice(0, limit),
+  });
+});
+
+// GET /api/historical/departments/:entity
+apiRouter.get('/historical/departments/:entity', (req: Request, res: Response) => {
+  const rawEntity = req.params.entity;
+  const entityParam = Array.isArray(rawEntity) ? rawEntity[0] : rawEntity;
+
+  if (!entityParam || typeof entityParam !== 'string' || entityParam.trim() === '') {
+    res.status(400).json({
+      error: { code: 'INVALID_PARAMETER', message: 'Entity parameter is required.' },
+    });
+    return;
+  }
+
+  const service = getServerCpgramsService();
+  const profile = getDepartmentHistoricalComparison(entityParam, service);
+
+  if (!profile) {
+    res.status(404).json({
+      error: {
+        code: 'ENTITY_NOT_FOUND',
+        message: `Entity '${entityParam}' was not found in active reporting departments.`,
+      },
+    });
+    return;
+  }
+
+  res.json({
+    source: 'cpgrams_historical_10yr',
+    profile,
+  });
+});
+
+// GET /api/historical/compare/:entity
+apiRouter.get('/historical/compare/:entity', (req: Request, res: Response) => {
+  const rawEntity = req.params.entity;
+  const entityParam = Array.isArray(rawEntity) ? rawEntity[0] : rawEntity;
+
+  if (!entityParam || typeof entityParam !== 'string' || entityParam.trim() === '') {
+    res.status(400).json({
+      error: { code: 'INVALID_PARAMETER', message: 'Entity parameter is required.' },
+    });
+    return;
+  }
+
+  const service = getServerCpgramsService();
+  const profile = getDepartmentHistoricalComparison(entityParam, service);
+
+  if (!profile) {
+    res.status(404).json({
+      error: {
+        code: 'ENTITY_NOT_FOUND',
+        message: `Entity '${entityParam}' was not found for comparison.`,
+      },
+    });
+    return;
+  }
+
+  res.json({
+    entity: profile.entity,
+    hasHistoricalBaseline: profile.hasHistoricalBaseline,
+    current: {
+      disposalRate: profile.currentDisposalRate,
+      received: profile.currentReceived,
+      disposed: profile.currentDisposed,
+      pending: profile.currentPending,
+      period: '2026-01-01 to 2026-08-24',
+    },
+    historical: profile.hasHistoricalBaseline
+      ? {
+          disposalRate: profile.historicalDisposalRate,
+          received: profile.historicalTotalReceived,
+          redressed: profile.historicalTotalRedressed,
+          avgDisposalDays: profile.historicalAverageDisposalDays,
+          period: profile.historicalPeriod,
+        }
+      : null,
+    comparison: {
+      varianceDisposalRate: profile.varianceDisposalRate,
+      trend: profile.trend,
+      trendReason: profile.trendReason,
+    },
+    evidence: profile.evidence,
+  });
+});
+
+// ==========================================
+// 16. MUNICIPAL CASE STUDY (PCMC)
+// ==========================================
+
+// GET /api/municipal/pcmc
+apiRouter.get('/municipal/pcmc', (_req: Request, res: Response) => {
+  const caseStudy = getMunicipalCaseStudy();
+  res.json({
+    source: 'pcmc_municipal_case_study_2025',
+    caseStudy,
+  });
+});
+
 

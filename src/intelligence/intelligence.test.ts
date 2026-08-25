@@ -213,6 +213,55 @@ describe('Actionable Intelligence Engine', () => {
       expect(result.facilityContextAvailable).toBeFalsy();
     });
 
+    // 5 Official Evaluator Demo Scenarios
+    it('Scenario 1: EPFO/Pension routes to Labour and Employment', () => {
+      const res = routeGrievanceText('My pension payment from EPFO has been delayed for two months.');
+      expect(res.status).toBe('MATCHED');
+      expect(res.recommendedEntity).toBe('Labour and Employment');
+      expect(res.detectedCategory).toContain('Labour, EPFO');
+    });
+
+    it('Scenario 2: Healthcare & Facility routes to Health & Family Welfare with facility context', () => {
+      const res = routeGrievanceText('The PHC in Adoni Kurnool is not functioning and there are no medicines.');
+      expect(res.status).toBe('MATCHED');
+      expect(res.recommendedEntity).toBe('Health & Family Welfare');
+      expect(res.facilityContextAvailable).toBe(true);
+      expect(res.facilityDomain).toBe('HEALTHCARE');
+    });
+
+    it('Scenario 3: Income Tax Refund routes to CBDT without facility context', () => {
+      const res = routeGrievanceText('My income tax refund is delayed.');
+      expect(res.status).toBe('MATCHED');
+      expect(res.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      expect(res.facilityContextAvailable).toBeFalsy();
+    });
+
+    it('Scenario 4: Railway Tatkal Refund routes to Railway Board', () => {
+      const res = routeGrievanceText('My Tatkal ticket was cancelled automatically but the refund has not been credited.');
+      expect(res.status).toBe('MATCHED');
+      expect(res.recommendedEntity).toBe('Railway Board');
+    });
+
+    it('Scenario 5: Ambiguous query triggers NEEDS_REVIEW with missing info guidance without false guessing', () => {
+      const res = routeGrievanceText('I have a problem with a government service and nobody is helping me.');
+      expect(res.status).toBe('NEEDS_REVIEW');
+      expect(res.recommendedEntity).toBeNull();
+      expect(res.confidence).toBe(0);
+      expect(res.missingInfoGuidance).toBeDefined();
+      expect(res.missingInfoGuidance?.length).toBeGreaterThan(10);
+    });
+
+    it('should support natural Hindi grievance routing across domains', () => {
+      const epfoHi = routeGrievanceText('मेरा पेंशन नहीं आया है और ईपीएफओ ट्रांसफर अटका है');
+      expect(epfoHi.recommendedEntity).toBe('Labour and Employment');
+
+      const taxHi = routeGrievanceText('आयकर रिफंड अभी तक बैंक खाते में नहीं मिला');
+      expect(taxHi.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+
+      const railHi = routeGrievanceText('रेलवे टिकट का पैसा और तत्काल रिफंड वापस नहीं आया');
+      expect(railHi.recommendedEntity).toBe('Railway Board');
+    });
+
     it('should handle empty input safely', () => {
       const result = routeGrievanceText('   ');
       expect(result.status).toBe('UNCATEGORIZED');

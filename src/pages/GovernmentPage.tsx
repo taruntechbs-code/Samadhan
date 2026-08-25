@@ -10,6 +10,7 @@ import { DepartmentLeaderboard } from '../components/government/DepartmentLeader
 import { DepartmentDetailModal } from '../components/government/DepartmentDetailModal';
 import { AppealsIntelligenceCard } from '../components/government/AppealsIntelligenceCard';
 import { SystemInsightsCard } from '../components/government/SystemInsightsCard';
+import { HistoricalIntelligenceCard } from '../components/government/HistoricalIntelligenceCard';
 import {
   fetchSystemOverview,
   fetchDepartmentRanking,
@@ -29,11 +30,12 @@ import {
   RefreshCw,
   Activity,
   Globe2,
+  History,
 } from 'lucide-react';
 
 export const GovernmentPage: React.FC = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'overview' | 'attention' | 'leaderboard' | 'appeals'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'attention' | 'leaderboard' | 'appeals' | 'historical'>('overview');
   const [scopeFilter, setScopeFilter] = useState<'ALL' | 'Department' | 'State/UT'>('ALL');
   const [overview, setOverview] = useState<SystemOverview | null>(null);
   const [leaderboardMetrics, setLeaderboardMetrics] = useState<PeriodDepartmentMetrics[]>([]);
@@ -231,6 +233,22 @@ export const GovernmentPage: React.FC = () => {
           <FileQuestion size={16} />
           <span>{t('gov.tabAppeals')}</span>
         </button>
+
+        <button
+          type="button"
+          className="btn"
+          style={{
+            minHeight: '40px',
+            padding: '0.5rem 1.25rem',
+            fontSize: '0.875rem',
+            backgroundColor: activeTab === 'historical' ? 'var(--md-sys-color-primary)' : 'transparent',
+            color: activeTab === 'historical' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+          }}
+          onClick={() => setActiveTab('historical')}
+        >
+          <History size={16} />
+          <span>{t('gov.tabHistorical')}</span>
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -283,6 +301,12 @@ export const GovernmentPage: React.FC = () => {
           {activeTab === 'appeals' && appeals && (
             <AppealsIntelligenceCard
               appeals={appeals}
+              onSelectDepartment={setSelectedDepartment}
+            />
+          )}
+
+          {activeTab === 'historical' && (
+            <HistoricalIntelligenceCard
               onSelectDepartment={setSelectedDepartment}
             />
           )}

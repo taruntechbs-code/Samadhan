@@ -404,26 +404,91 @@ SAMADHAN integrates the National Public Healthcare Facility Directory (`data/fac
 
 ---
 
+## Historical & Longitudinal Intelligence (Phase 7)
+
+SAMADHAN evolves from a single-period telemetry monitor into a comprehensive **Longitudinal Grievance Intelligence Engine**, comparing current 2026 operational velocity against 10-year DARPG historical baselines (2016–2026):
+
+* **Longitudinal Baseline Computation**: Computes 10-year cumulative receipts, disposals, historical disposal rates, and average resolution turnaround in days across central ministries and States/UTs.
+* **Deterministic Directional Trajectory**:
+  * `↑ IMPROVING`: Current disposal velocity outperforms 10-year historical baseline by &ge; +2.5 percentage points.
+  * `→ STABLE`: Current disposal velocity remains within standard operational variance (&plusmn;2.5 pp) of historical baseline.
+  * `↓ DETERIORATING`: Current disposal velocity lags 10-year historical baseline by &le; -5.0 percentage points.
+  * `INSUFFICIENT_HISTORY`: Authorities without verified 10-year longitudinal records remain unpenalized and clearly flagged.
+* **Historical Factor in Risk Engine**: Extends deterministic risk scoring (0–100) with an optional historical deterioration factor (+10 to +15 points) when an authority exhibits severe historical degradation.
+* **Department Detail Deep-Dive**: Enables administrators to audit whether a department's current alert status is an emerging anomaly or a chronic historical pattern.
+
+---
+
+## Central Dataset Registry & Multi-Source Provenance
+
+SAMADHAN maintains a centralized registry (`src/data/datasetRegistry.ts`) enforcing strict provenance isolation across all 5 data sources:
+
+| Dataset ID | Publisher / Source | Period | Classification | Usage in SAMADHAN |
+| :--- | :--- | :--- | :--- | :--- |
+| `live_dashboard_2026` | DARPG / pgportal.gov.in | Jan 1 – Aug 24, 2026 | `CPGRAMS_CURRENT` | Real-time Executive KPIs, 4-tier aging pendency, live operational risk scoring. |
+| `appeal_dashboard_2026-08-25` | DARPG / pgportal.gov.in | Snapshot Aug 25, 2026 | `CPGRAMS_CURRENT` | Secondary Appeals Intelligence across 88 central ministries. |
+| `department_history_2016_2026-02-28` | DARPG / data.gov.in | Jan 2016 – Feb 2026 | `CPGRAMS_HISTORICAL` | 10-year longitudinal baselines, historical disposal velocity, variance deltas. |
+| `monthly_central_2026` | DARPG / data.gov.in | Jan – Jun 2026 | `CPGRAMS_HISTORICAL` | Monthly snapshots, CSC submissions, citizen feedback ratings, review meetings. |
+| `facility_directory` | NHA / MoHFW | 2025–2026 | `FACILITY_DIRECTORY` | Public healthcare facility directory (200,440 records) for geographic jurisdiction. |
+| `pcmc_grievance_2025` | PCMC / data.gov.in | 2025 | `MUNICIPAL_CASE_STUDY` | Urban Local Body (ULB) municipal case study — strictly segregated from CPGRAMS. |
+
+---
+
+## Municipal Case Study Isolation (PCMC)
+
+* **Architectural Purpose**: Demonstrates that SAMADHAN's natural-language triage and transparency framework seamlessly scales from Union Ministries down to city ward administrative units.
+* **Strict Segregation Guarantee**: PCMC data is isolated in `src/data/municipal/pcmc.ts` and is **never merged into national CPGRAMS aggregates** or used to alter central government disposal rates.
+
+---
+
+## Evaluator Demonstration Scenarios (5 Official Flows)
+
+Judges and evaluators can test the 5 primary platform capabilities in 1 click directly from the **Explore SAMADHAN** evaluator bar on the home screen:
+
+* **Scenario 1 — Labour & EPFO Pension Delay**:
+  * *Input*: `"My pension payment from EPFO has been delayed for two months."`
+  * *Outcome*: Accurately routes to `Ministry of Labour & Employment` (92.81% live disposal velocity), cites 10-year historical baseline (98.77%), zero healthcare facility lookup overhead.
+* **Scenario 2 — Healthcare & Facility Geographic Resolution**:
+  * *Input*: `"The PHC in Adoni Kurnool is not functioning and there are no medicines."`
+  * *Outcome*: Routes to `Health & Family Welfare`, automatically resolves geographic facility context from the 200,440-record Facility Directory to `PHC Adoni Rural (Kurnool, Andhra Pradesh)`, with rural tags and active operational status.
+* **Scenario 3 — Income Tax & Direct Taxation**:
+  * *Input*: `"My income tax refund is delayed."`
+  * *Outcome*: Routes to `Central Board of Direct Taxes (Income Tax)` (93.71% disposal velocity), zero healthcare facility context triggered.
+* **Scenario 4 — Railways & Tatkal Ticket Cancellation**:
+  * *Input*: `"My Tatkal ticket was cancelled automatically but the refund has not been credited."`
+  * *Outcome*: Routes to `Railway Board`, providing direct redressal cell mapping.
+* **Scenario 5 — Ambiguous Grievance (Responsible AI / Needs Review)**:
+  * *Input*: `"I have a problem with a government service and nobody is helping me."`
+  * *Outcome*: Identifies missing administrative identifiers without guessing a false authority; returns a transparent `NEEDS_REVIEW` state with actionable guidance on the missing details (e.g. scheme, department, reference ID).
+
+---
+
 ## Testing & Verification
 
 ```bash
-# Run all unit, service, intelligence, i18n, facility, and API integration tests (90 tests)
+# Run all unit, service, intelligence, i18n, facility, historical, and API integration tests (116 tests)
 npm test
 
-# Run API integration test suite specifically (35 tests)
+# Run API integration test suite specifically (41 tests)
 npm run test:api
 
 # Run the 11-point Real CPGRAMS Dataset Verification Suite
 npm run verify
+
+# Run production TypeScript and Vite bundle verification
+npm run build
 ```
 
 ### Test Suite Summary
+* `src/data/entityNormalizer.test.ts`: **5 / 5 passing**
+* `src/data/municipal/pcmc.test.ts`: **3 / 3 passing**
 * `src/data/facilityDirectory.test.ts`: **14 / 14 passing**
-* `src/i18n/i18n.test.ts`: **8 / 8 passing**
+* `src/data/cpgramsHistorical.test.ts`: **4 / 4 passing**
+* `src/i18n/i18n.test.ts`: **9 / 9 passing**
 * `src/services/cpgramsService.test.ts`: **18 / 18 passing**
-* `src/intelligence/intelligence.test.ts`: **16 / 16 passing**
-* `src/api/app.test.ts`: **35 / 35 passing**
-* **Total**: **91 / 91 passing tests** (100% pass rate).
+* `src/intelligence/intelligence.test.ts`: **22 / 22 passing**
+* `src/api/app.test.ts`: **41 / 41 passing**
+* **Total**: **116 / 116 passing tests** (100% pass rate).
 
 ---
 

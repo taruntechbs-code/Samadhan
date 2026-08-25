@@ -82,7 +82,7 @@ export const TransparencyModal: React.FC<TransparencyModalProps> = ({ isOpen, on
               </p>
             </div>
 
-            {/* 1. Official Data Foundation */}
+            {/* 1. Official Data Foundation & Multi-Source Provenance */}
             <div style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '1.25rem', borderRadius: '16px' }}>
               <h3 className="title-medium" style={{ fontSize: '1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--md-sys-color-primary)' }}>
                 <Database size={18} />
@@ -91,12 +91,23 @@ export const TransparencyModal: React.FC<TransparencyModalProps> = ({ isOpen, on
               <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface)', lineHeight: 1.5 }}>
                 {t('transparency.sec1Body')}
               </p>
-              <ul style={{ paddingLeft: '1.25rem', marginTop: '0.4rem', fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-                <li>{t('transparency.sec1Item1')}</li>
-                <li>{t('transparency.sec1Item2')}</li>
-                <li>{t('transparency.sec1Item3')}</li>
-                <li>{t('transparency.sec1Item4')}</li>
-              </ul>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+                <div style={{ padding: '0.625rem 0.75rem', backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--md-sys-color-outline-variant)', fontSize: '0.8125rem' }}>
+                  <strong style={{ color: 'var(--md-sys-color-primary)' }}>1. CPGRAMS Live Telemetry (2026)</strong>: Current operational receipts, disposals, and 4-tier aging pendency across 127 ministries/states.
+                </div>
+                <div style={{ padding: '0.625rem 0.75rem', backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--md-sys-color-outline-variant)', fontSize: '0.8125rem' }}>
+                  <strong style={{ color: 'var(--md-sys-color-primary)' }}>2. CPGRAMS 10-Year Historical Baseline (2016–2026)</strong>: Longitudinal series establishing 10-year disposal rates and volume benchmarks.
+                </div>
+                <div style={{ padding: '0.625rem 0.75rem', backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--md-sys-color-outline-variant)', fontSize: '0.8125rem' }}>
+                  <strong style={{ color: 'var(--md-sys-color-primary)' }}>3. Monthly Central Progress Reports (2026)</strong>: Monthly snapshots for feedback, CSC submissions, and review meetings.
+                </div>
+                <div style={{ padding: '0.625rem 0.75rem', backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--md-sys-color-outline-variant)', fontSize: '0.8125rem' }}>
+                  <strong style={{ color: 'var(--md-sys-color-primary)' }}>4. National Healthcare Facility Directory (200,440 records)</strong>: Server-side geographic administrative jurisdiction layer for health facilities.
+                </div>
+                <div style={{ padding: '0.625rem 0.75rem', backgroundColor: '#FAF5FF', borderRadius: '10px', border: '1px solid var(--md-sys-color-secondary)', fontSize: '0.8125rem' }}>
+                  <strong style={{ color: 'var(--md-sys-color-secondary)' }}>5. PCMC Municipal Case Study (2025)</strong>: Urban local body (ULB) case study — strictly segregated from Central CPGRAMS metrics.
+                </div>
+              </div>
             </div>
 
             {/* 2. Routing Intelligence Architecture */}

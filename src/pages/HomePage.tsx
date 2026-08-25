@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GrievanceInputHero } from '../components/citizen/GrievanceInputHero';
 import { GrievanceSubmitModal } from '../components/citizen/GrievanceSubmitModal';
 import { SamadhanJourney } from '../components/citizen/SamadhanJourney';
+import { JudgeScenarioBar } from '../components/citizen/JudgeScenarioBar';
 import { RoutingRecommendation } from '../intelligence/types';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -82,7 +83,10 @@ export const HomePage: React.FC = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem', paddingBottom: '2.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', paddingBottom: '2.5rem' }}>
+      {/* 1-Click Judge & Evaluator Scenarios Bar */}
+      <JudgeScenarioBar onSelectScenario={handleTriggerScenario} />
+
       {/* Hero Section */}
       <GrievanceInputHero
         onOpenSubmitModal={handleOpenSubmit}

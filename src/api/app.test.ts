@@ -336,7 +336,76 @@ describe('SAMADHAN API Endpoints', () => {
     });
   });
 
-  // 14. Undefined Route 404
+  // 14. Dataset Registry Endpoints
+  describe('Dataset Registry Endpoints', () => {
+    it('GET /api/datasets returns registered data sources with provenance', async () => {
+      const res = await request(app).get('/api/datasets');
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBeGreaterThanOrEqual(5);
+      expect(res.body.datasets.some((d: any) => d.category === 'CPGRAMS_CURRENT')).toBe(true);
+      expect(res.body.datasets.some((d: any) => d.category === 'CPGRAMS_HISTORICAL')).toBe(true);
+      expect(res.body.datasets.some((d: any) => d.category === 'MUNICIPAL_CASE_STUDY')).toBe(true);
+    });
+  });
+
+  // 15. Historical Intelligence Endpoints
+  describe('Historical Intelligence Endpoints', () => {
+    it('GET /api/historical/overview returns system longitudinal overview', async () => {
+      const res = await request(app).get('/api/historical/overview');
+      expect(res.status).toBe(200);
+      expect(res.body.source).toBe('cpgrams_historical_10yr');
+      expect(res.body.overview.totalEntitiesWithHistory).toBeGreaterThan(0);
+      expect(res.body.overview.overallHistoricalDisposalRate).toBeGreaterThan(0);
+    });
+
+    it('GET /api/historical/trends returns department comparisons with trend filtering', async () => {
+      const res = await request(app).get('/api/historical/trends?limit=10');
+      expect(res.status).toBe(200);
+      expect(res.body.results.length).toBeLessThanOrEqual(10);
+      expect(res.body.results[0].currentDisposalRate).toBeDefined();
+
+      const filtered = await request(app).get('/api/historical/trends?trend=IMPROVING');
+      expect(filtered.status).toBe(200);
+      expect(filtered.body.results.every((r: any) => r.trend === 'IMPROVING')).toBe(true);
+
+      const invalidTrend = await request(app).get('/api/historical/trends?trend=INVALID_TREND');
+      expect(invalidTrend.status).toBe(400);
+      expect(invalidTrend.body.error.code).toBe('INVALID_PARAMETER');
+    });
+
+    it('GET /api/historical/departments/:entity returns single department baseline', async () => {
+      const res = await request(app).get('/api/historical/departments/Labour%20and%20Employment');
+      expect(res.status).toBe(200);
+      expect(res.body.profile.entity).toBe('Labour and Employment');
+      expect(res.body.profile.hasHistoricalBaseline).toBe(true);
+
+      const notFound = await request(app).get('/api/historical/departments/NON_EXISTENT_MINISTRY');
+      expect(notFound.status).toBe(404);
+      expect(notFound.body.error.code).toBe('ENTITY_NOT_FOUND');
+    });
+
+    it('GET /api/historical/compare/:entity returns structured delta comparison', async () => {
+      const res = await request(app).get('/api/historical/compare/Labour%20and%20Employment');
+      expect(res.status).toBe(200);
+      expect(res.body.current.disposalRate).toBeDefined();
+      expect(res.body.historical.disposalRate).toBeDefined();
+      expect(res.body.comparison.varianceDisposalRate).toBeDefined();
+      expect(res.body.evidence.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  // 16. Municipal Case Study Endpoints
+  describe('Municipal Case Study Endpoints', () => {
+    it('GET /api/municipal/pcmc returns isolated municipal dataset', async () => {
+      const res = await request(app).get('/api/municipal/pcmc');
+      expect(res.status).toBe(200);
+      expect(res.body.caseStudy.corporation).toContain('Pimpri Chinchwad');
+      expect(res.body.caseStudy.categories.length).toBe(5);
+      expect(res.body.caseStudy.disclaimer).toContain('segregated');
+    });
+  });
+
+  // 17. Undefined Route 404
   describe('Undefined /api/* route', () => {
     it('should return 404 with structured error JSON', async () => {
       const res = await request(app).get('/api/non_existent_endpoint');

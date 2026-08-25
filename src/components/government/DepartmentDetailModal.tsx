@@ -5,11 +5,11 @@ import { AgingBarChart } from '../common/Charts';
 import { MetricCard } from '../common/MetricCard';
 import { LoadingSpinner } from '../common/LoadingState';
 import { EvidenceBadge } from '../common/EvidenceBadge';
-import { fetchDepartmentInsights, fetchDepartmentByName } from '../../services/apiClient';
+import { fetchDepartmentInsights, fetchDepartmentByName, fetchHistoricalDepartment } from '../../services/apiClient';
 import { DepartmentInsight } from '../../intelligence/types';
 import { DepartmentDetail } from '../../services/types';
 import { useTranslation } from '../../i18n';
-import { X, Building2, ExternalLink, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react';
+import { X, Building2, ExternalLink, Lightbulb, TrendingUp, AlertCircle, History } from 'lucide-react';
 
 interface DepartmentDetailModalProps {
   entityName: string | null;
@@ -23,6 +23,7 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
   const { t } = useTranslation();
   const [insight, setInsight] = useState<DepartmentInsight | null>(null);
   const [detail, setDetail] = useState<DepartmentDetail | null>(null);
+  const [historical, setHistorical] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,10 +33,12 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
     Promise.all([
       fetchDepartmentInsights(entityName),
       fetchDepartmentByName(entityName),
+      fetchHistoricalDepartment(entityName),
     ])
-      .then(([ins, det]) => {
+      .then(([ins, det, hist]) => {
         setInsight(ins);
         setDetail(det);
+        setHistorical(hist);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -234,6 +237,108 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
                     </div>
                   )}
                 </div>
+
+                {/* Historical Baseline Comparison */}
+                {historical && (
+                  <div
+                    style={{
+                      backgroundColor: '#FAF6FB',
+                      padding: '1.25rem',
+                      borderRadius: 'var(--radius-card)',
+                      border: '1px solid var(--md-sys-color-outline-variant)',
+                      marginTop: '0.875rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                      <h3 className="title-medium" style={{ fontSize: '1rem', margin: 0, color: 'var(--md-sys-color-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <History size={16} />
+                        <span>{t('deptModal.historicalHeading')}</span>
+                      </h3>
+                      <span
+                        className={
+                          historical.trend === 'IMPROVING'
+                            ? 'chip chip-low'
+                            : historical.trend === 'DETERIORATING'
+                            ? 'chip chip-critical'
+                            : 'chip chip-medium'
+                        }
+                        style={{ fontSize: '0.75rem' }}
+                      >
+                        {historical.trend === 'IMPROVING' && `+${historical.varianceDisposalRate}% • ${t('historical.improving')}`}
+                        {historical.trend === 'DETERIORATING' && `${historical.varianceDisposalRate}% • ${t('historical.deteriorating')}`}
+                        {historical.trend === 'STABLE' && `${historical.varianceDisposalRate}% • ${t('historical.stable')}`}
+                        {historical.trend === 'INSUFFICIENT_HISTORY' && t('historical.insufficientHistory')}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', fontSize: '0.875rem' }}>
+                      <div>
+                        <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.75rem' }}>
+                          {t('historical.historicalBaseline')}
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--md-sys-color-primary)' }}>
+                          {historical.hasHistoricalBaseline ? `${historical.historicalDisposalRate}%` : 'N/A'}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                          10-Yr (2016–2026)
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.75rem' }}>
+                          {t('historical.currentDisposal')}
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>
+                          {historical.currentDisposalRate}%
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                          Live 2026 Telemetry
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.75rem' }}>
+                          Variance
+                        </div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: '1.125rem',
+                            color:
+                              historical.varianceDisposalRate >= 0
+                                ? 'var(--md-sys-color-risk-low)'
+                                : 'var(--md-sys-color-risk-critical)',
+                          }}
+                        >
+                          {historical.varianceDisposalRate >= 0
+                            ? `+${historical.varianceDisposalRate} pp`
+                            : `${historical.varianceDisposalRate} pp`}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                          vs 10-Yr Standard
+                        </div>
+                      </div>
+
+                      {historical.historicalAverageDisposalDays && (
+                        <div>
+                          <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.75rem' }}>
+                            Avg Disposal Time
+                          </div>
+                          <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>
+                            {historical.historicalAverageDisposalDays} days
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                            Historical Average
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.75rem', marginBottom: 0, lineHeight: 1.4 }}>
+                      {historical.trendReason}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Actionable Recommendations */}

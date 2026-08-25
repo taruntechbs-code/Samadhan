@@ -56,6 +56,15 @@ describe('i18n Localization Architecture', () => {
     expect(hi.facility.activeStatus).toBe('सक्रिय सुविधा');
   });
 
+  it('should translate historical and trend intelligence terminology to authentic Hindi', () => {
+    expect(hi.gov.tabHistorical).toBe('रुझान एवं ऐतिहासिक बुद्धिमत्ता');
+    expect(hi.deptModal.historicalHeading).toBe('ऐतिहासिक आधार रेखा एवं रुझान तुलना');
+    expect(hi.historical.title).toBe('दीर्घकालिक एवं ऐतिहासिक विश्लेषण डैशबोर्ड');
+    expect(hi.historical.improving).toBe('सुधार');
+    expect(hi.historical.deteriorating).toBe('गिरावट');
+    expect(hi.historical.stable).toBe('स्थिर');
+  });
+
   it('should cleanly export useTranslation hook and LanguageProvider from index', () => {
     expect(typeof indexExports.useTranslation).toBe('function');
     expect(typeof indexExports.LanguageProvider).toBe('function');

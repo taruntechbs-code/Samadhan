@@ -7,7 +7,7 @@ import { routeGrievance } from '../../services/apiClient';
 import { RoutingRecommendation } from '../../intelligence/types';
 import { useTranslation } from '../../i18n';
 import { FacilityContextCard } from './FacilityContextCard';
-import { Mic, Send, Sparkles, Building2, CheckCircle2, ArrowRight, ShieldCheck, Cpu, RefreshCw } from 'lucide-react';
+import { Mic, Send, Sparkles, Building2, CheckCircle2, ArrowRight, ShieldCheck, Cpu, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface GrievanceInputHeroProps {
   onOpenSubmitModal: (recommendation: RoutingRecommendation, grievanceText: string) => void;
@@ -331,6 +331,65 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               }}
               label={t('hero.sourceVerified')}
             />
+          </div>
+        </Card>
+      )}
+
+      {/* Ambiguous / Needs Information Card (Zero False Authority Guessing) */}
+      {routingResult && !routingResult.recommendedEntity && text.trim().length >= 8 && (
+        <Card variant="standard" style={{ border: '1.5px solid var(--md-sys-color-risk-medium)', background: '#FFFDF5' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '16px',
+                backgroundColor: 'var(--md-sys-color-risk-medium-container)',
+                color: 'var(--md-sys-color-on-risk-medium-container)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <AlertCircle size={24} />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                <span className="chip chip-medium" style={{ fontSize: '0.75rem' }}>
+                  {language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS REVIEW)' : 'Needs More Information (NEEDS REVIEW)'}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
+                  {language === 'hi' ? 'जिम्मेदार एआई वर्गीकरण • शून्य बनावटी अनुमान' : 'Responsible AI Triage • Zero False Guessing'}
+                </span>
+              </div>
+
+              <h2 className="title-large" style={{ color: 'var(--md-sys-color-on-surface)', fontSize: '1.15rem' }}>
+                {language === 'hi' ? 'शिकायत में विशिष्ट विभाग या योजना का विवरण नहीं मिला' : 'Grievance Lacks Specific Departmental Identifiers'}
+              </h2>
+
+              <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.35rem', lineHeight: 1.45 }}>
+                {routingResult.missingInfoGuidance || routingResult.matchReason}
+              </p>
+
+              <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant)', alignSelf: 'center' }}>
+                  {language === 'hi' ? 'सुझाए गए विषय जोड़ें:' : 'Add specific domain keyword:'}
+                </span>
+                {['EPFO / Pension', 'Income Tax / Refund', 'Health / Hospital', 'Railways / IRCTC', 'Electricity / Power', 'Passport'].map(sug => (
+                  <button
+                    key={sug}
+                    type="button"
+                    className="btn btn-tonal"
+                    style={{ minHeight: '30px', padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
+                    onClick={() => setText(prev => prev ? `${prev} (${sug})` : sug)}
+                  >
+                    + {sug}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
       )}

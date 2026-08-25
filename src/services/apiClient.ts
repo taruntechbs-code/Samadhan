@@ -406,3 +406,76 @@ export async function fetchFacilityById(id: string): Promise<FacilityRecord | nu
   return null;
 }
 
+// 8. Dataset Registry
+export async function fetchDatasets() {
+  try {
+    const res = await fetch('/api/datasets');
+    if (res.ok) {
+      const data = await res.json();
+      return data.datasets || [];
+    }
+  } catch (err) {
+    console.warn('Dataset registry API unavailable:', err);
+  }
+  return [];
+}
+
+// 9. Historical Intelligence
+export async function fetchHistoricalOverview() {
+  try {
+    const res = await fetch('/api/historical/overview');
+    if (res.ok) {
+      const data = await res.json();
+      return data.overview;
+    }
+  } catch (err) {
+    console.warn('Historical overview API unavailable:', err);
+  }
+  return null;
+}
+
+export async function fetchHistoricalComparisons(params?: { trend?: string; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params?.trend) query.set('trend', params.trend);
+  if (params?.limit) query.set('limit', String(params.limit));
+
+  try {
+    const res = await fetch(`/api/historical/trends?${query.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.results || [];
+    }
+  } catch (err) {
+    console.warn('Historical comparisons API unavailable:', err);
+  }
+  return [];
+}
+
+export async function fetchHistoricalDepartment(entity: string) {
+  try {
+    const res = await fetch(`/api/historical/departments/${encodeURIComponent(entity)}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.profile || null;
+    }
+  } catch (err) {
+    console.warn('Historical department API unavailable:', err);
+  }
+  return null;
+}
+
+// 10. Municipal Case Study (PCMC)
+export async function fetchMunicipalCaseStudy() {
+  try {
+    const res = await fetch('/api/municipal/pcmc');
+    if (res.ok) {
+      const data = await res.json();
+      return data.caseStudy || null;
+    }
+  } catch (err) {
+    console.warn('Municipal case study API unavailable:', err);
+  }
+  return null;
+}
+
+
