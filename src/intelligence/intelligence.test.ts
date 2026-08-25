@@ -198,6 +198,21 @@ describe('Actionable Intelligence Engine', () => {
       expect(result.detectedCategory).toContain('Uncategorized');
     });
 
+    it('should route healthcare grievances to Health & Family Welfare with facility context enabled', () => {
+      const result = routeGrievanceText('The PHC health centre doctor is absent and no medicine supply');
+
+      expect(result.status).toBe('MATCHED');
+      expect(result.detectedCategory).toBe('Health & Family Welfare');
+      expect(result.recommendedEntity).toBe('Health & Family Welfare');
+      expect(result.facilityContextAvailable).toBe(true);
+      expect(result.facilityDomain).toBe('HEALTHCARE');
+    });
+
+    it('should NOT enable facility context for non-healthcare grievances', () => {
+      const result = routeGrievanceText('My ITR income tax refund is pending for 6 months');
+      expect(result.facilityContextAvailable).toBeFalsy();
+    });
+
     it('should handle empty input safely', () => {
       const result = routeGrievanceText('   ');
       expect(result.status).toBe('UNCATEGORIZED');

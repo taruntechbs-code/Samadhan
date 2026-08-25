@@ -2,48 +2,52 @@ import React from 'react';
 import { Card } from '../common/Card';
 import { AgingBarChart } from '../common/Charts';
 import { AgingAnalysis } from '../../services/types';
-import { ShieldCheck, Layers } from 'lucide-react';
+import { Clock, ShieldCheck } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
-export interface AgingDistributionCardProps {
+interface AgingDistributionCardProps {
   aging: AgingAnalysis;
 }
 
 export const AgingDistributionCard: React.FC<AgingDistributionCardProps> = ({ aging }) => {
+  const { t } = useTranslation();
+
   return (
     <Card variant="standard" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div
             style={{
               width: '40px',
               height: '40px',
               borderRadius: '12px',
-              backgroundColor: 'var(--md-sys-color-secondary-container)',
-              color: 'var(--md-sys-color-on-secondary-container)',
+              backgroundColor: 'var(--md-sys-color-primary-container)',
+              color: 'var(--md-sys-color-on-primary-container)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Layers size={20} />
+            <Clock size={20} />
           </div>
           <div>
-            <h3 className="title-large" style={{ fontSize: '1.25rem' }}>
-              System-Wide Pendency Aging Distribution
+            <h3 className="title-large" style={{ fontSize: '1.2rem' }}>
+              {t('gov.agingTitle')}
             </h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Breakdown of {aging.total.toLocaleString('en-IN')} pending cases across standard resolution timelines
+              {t('gov.agingSubtitle')}
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--md-sys-color-risk-low)', fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--md-sys-color-risk-low)', fontSize: '0.8125rem', fontWeight: 600 }}>
           <ShieldCheck size={16} />
-          <span>0 cases &gt; 1 year</span>
+          <span>{t('gov.casesOverOneYear')}</span>
         </div>
       </div>
 
-      <AgingBarChart aging={aging} />
+      <AgingBarChart aging={aging} title="" />
     </Card>
   );
 };

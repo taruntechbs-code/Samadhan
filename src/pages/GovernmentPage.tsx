@@ -20,6 +20,7 @@ import {
 import { SystemOverview, AppealsOverview } from '../../src/services/types';
 import { PeriodDepartmentMetrics } from '../../src/data/types';
 import { SystemInsight } from '../../src/intelligence/types';
+import { useTranslation } from '../i18n';
 import {
   LayoutDashboard,
   ShieldAlert,
@@ -31,6 +32,7 @@ import {
 } from 'lucide-react';
 
 export const GovernmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'attention' | 'leaderboard' | 'appeals'>('overview');
   const [scopeFilter, setScopeFilter] = useState<'ALL' | 'Department' | 'State/UT'>('ALL');
   const [overview, setOverview] = useState<SystemOverview | null>(null);
@@ -77,15 +79,15 @@ export const GovernmentPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
             <Badge type="primary">
               <Activity size={12} />
-              <span>National Operations &amp; Intelligence Cockpit</span>
+              <span>{t('gov.badge')}</span>
             </Badge>
             <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Official CPGRAMS Live Telemetry &bull; Jan 1 to Aug 24, 2026
+              {t('gov.liveTelemetry')}
             </span>
           </div>
-          <h1 className="headline-medium">Administrative Redressal Cockpit</h1>
+          <h1 className="headline-medium">{t('gov.title')}</h1>
           <p className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-            Real-time monitoring, deterministic risk triage, and actionable operational guidance across 278 public authorities
+            {t('gov.subtitle')}
           </p>
         </div>
 
@@ -101,13 +103,13 @@ export const GovernmentPage: React.FC = () => {
                 sourceUrl: overview.source.sourceUrl,
                 sourceNote: overview.source.sourceNote,
               }}
-              label="Audit Lineage"
+              label={t('gov.auditLineage')}
             />
           )}
 
           <Button variant="tonal" onClick={() => loadData(scopeFilter)} disabled={loading}>
             <RefreshCw size={16} className={loading ? 'spin' : ''} />
-            <span>Refresh Telemetry</span>
+            <span>{t('gov.refreshTelemetry')}</span>
           </Button>
         </div>
       </div>
@@ -123,14 +125,15 @@ export const GovernmentPage: React.FC = () => {
           backgroundColor: 'var(--md-sys-color-surface-container)',
           padding: '0.75rem 1.25rem',
           borderRadius: '20px',
+          border: '1px solid var(--md-sys-color-border-subtle)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--md-sys-color-primary)' }}>
           <Globe2 size={18} />
-          <span>National Pulse Scope:</span>
+          <span>{t('gov.pulseScope')}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.375rem', backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '0.25rem', borderRadius: 'var(--radius-pill)' }}>
+        <div style={{ display: 'flex', gap: '0.375rem', backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '0.25rem', borderRadius: 'var(--radius-pill)', flexWrap: 'wrap' }}>
           {(['ALL', 'Department', 'State/UT'] as const).map(sc => (
             <button
               key={sc}
@@ -145,7 +148,7 @@ export const GovernmentPage: React.FC = () => {
               }}
               onClick={() => setScopeFilter(sc)}
             >
-              {sc === 'ALL' ? 'All-India' : sc === 'Department' ? 'Central Ministries' : 'States & UTs'}
+              {sc === 'ALL' ? t('gov.allIndia') : sc === 'Department' ? t('gov.centralMinistries') : t('gov.statesUts')}
             </button>
           ))}
         </div>
@@ -162,6 +165,7 @@ export const GovernmentPage: React.FC = () => {
           width: 'fit-content',
           flexWrap: 'wrap',
           boxShadow: 'var(--shadow-level-1)',
+          border: '1px solid var(--md-sys-color-border-subtle)',
         }}
       >
         <button
@@ -177,7 +181,7 @@ export const GovernmentPage: React.FC = () => {
           onClick={() => setActiveTab('overview')}
         >
           <LayoutDashboard size={16} />
-          <span>Executive Cockpit</span>
+          <span>{t('gov.tabOverview')}</span>
         </button>
 
         <button
@@ -193,7 +197,7 @@ export const GovernmentPage: React.FC = () => {
           onClick={() => setActiveTab('attention')}
         >
           <ShieldAlert size={16} />
-          <span>Action Required ({attentionItems.length})</span>
+          <span>{t('gov.tabAttention')} ({attentionItems.length})</span>
         </button>
 
         <button
@@ -209,7 +213,7 @@ export const GovernmentPage: React.FC = () => {
           onClick={() => setActiveTab('leaderboard')}
         >
           <ListOrdered size={16} />
-          <span>Authority Leaderboard</span>
+          <span>{t('gov.tabLeaderboard')}</span>
         </button>
 
         <button
@@ -225,13 +229,13 @@ export const GovernmentPage: React.FC = () => {
           onClick={() => setActiveTab('appeals')}
         >
           <FileQuestion size={16} />
-          <span>Appellate Intelligence</span>
+          <span>{t('gov.tabAppeals')}</span>
         </button>
       </div>
 
       {/* Tab Content */}
       {loading || !overview ? (
-        <LoadingSpinner label="Compiling CPGRAMS system telemetry..." />
+        <LoadingSpinner label={t('gov.compilingTelemetry')} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {activeTab === 'overview' && (
@@ -240,7 +244,7 @@ export const GovernmentPage: React.FC = () => {
               <ExecutiveKpis overview={overview} />
 
               {/* Grid: Aging Distribution & System Insights */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
                 <AgingDistributionCard aging={overview.agingBuckets} />
                 {systemInsight && (
                   <SystemInsightsCard insight={systemInsight} onSelectDepartment={setSelectedDepartment} />

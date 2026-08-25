@@ -1,21 +1,21 @@
 /**
- * SAMADHAN — Material You / Material Design 3 Design System
- * Authority specification tokens for typography, shape language, atmospheric depth, and tonal surfaces.
+ * SAMADHAN — Material You / Material Design 3 Design System (Phase 6.1 Polished)
+ * Enhanced surface hierarchy, distinct input boundaries, responsive mobile QA, and accessible contrast.
  */
 
 :root {
   /* ==========================================================================
      1. COLOR TOKENS (MATERIAL YOU / MD3 PALETTE)
      ========================================================================== */
-  --md-sys-color-background: #FFFBFE;
+  --md-sys-color-background: #FAF6FB;
   --md-sys-color-on-background: #1C1B1F;
 
-  --md-sys-color-surface: #FFFBFE;
+  --md-sys-color-surface: #FFFFFF;
   --md-sys-color-on-surface: #1C1B1F;
   --md-sys-color-on-surface-variant: #49454F;
 
-  --md-sys-color-surface-container: #F3EDF7;
-  --md-sys-color-surface-container-low: #E7E0EC;
+  --md-sys-color-surface-container: #FFFFFF;
+  --md-sys-color-surface-container-low: #F3EDF7;
   --md-sys-color-surface-container-high: #ECE6F0;
   --md-sys-color-surface-container-highest: #E6E0E9;
 
@@ -34,6 +34,7 @@
 
   --md-sys-color-outline: #79747E;
   --md-sys-color-outline-variant: #CAC4D0;
+  --md-sys-color-border-subtle: rgba(121, 116, 126, 0.18);
 
   /* Risk & Status Semantics */
   --md-sys-color-risk-critical: #B3261E;
@@ -57,16 +58,16 @@
      ========================================================================== */
   --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  --font-size-display-large: 3.5rem;   /* 56px */
-  --font-size-headline-large: 3rem;    /* 48px */
-  --font-size-headline-medium: 2rem;   /* 32px */
-  --font-size-title-large: 1.5rem;     /* 24px */
-  --font-size-title-medium: 1.125rem;  /* 18px */
-  --font-size-body-large: 1.25rem;     /* 20px */
-  --font-size-body-medium: 1rem;       /* 16px */
-  --font-size-body-small: 0.875rem;    /* 14px */
-  --font-size-label-medium: 0.875rem;  /* 14px */
-  --font-size-label-small: 0.75rem;    /* 12px */
+  --font-size-display-large: clamp(2.25rem, 5vw, 3.5rem);   /* 36-56px */
+  --font-size-headline-large: clamp(1.75rem, 4vw, 3rem);     /* 28-48px */
+  --font-size-headline-medium: clamp(1.35rem, 3vw, 2rem);    /* 22-32px */
+  --font-size-title-large: clamp(1.15rem, 2.5vw, 1.5rem);   /* 18-24px */
+  --font-size-title-medium: 1.125rem;                        /* 18px */
+  --font-size-body-large: 1.125rem;                          /* 18px */
+  --font-size-body-medium: 1rem;                             /* 16px */
+  --font-size-body-small: 0.875rem;                          /* 14px */
+  --font-size-label-medium: 0.875rem;                        /* 14px */
+  --font-size-label-small: 0.75rem;                          /* 12px */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -76,15 +77,15 @@
      3. SHAPE & ELEVATION
      ========================================================================== */
   --radius-pill: 9999px;
-  --radius-dialog: 28px;
-  --radius-card: 24px;
-  --radius-card-large: 32px;
-  --radius-hero: 36px;
-  --radius-input: 12px;
+  --radius-dialog: 24px;
+  --radius-card: 20px;
+  --radius-card-large: 28px;
+  --radius-hero: 32px;
+  --radius-input: 14px;
 
-  --shadow-level-1: 0 1px 3px 1px rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.12);
-  --shadow-level-2: 0 2px 6px 2px rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.12);
-  --shadow-level-3: 0 4px 8px 3px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
+  --shadow-level-1: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
+  --shadow-level-2: 0 4px 8px -2px rgba(103, 80, 164, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-level-3: 0 10px 24px -4px rgba(103, 80, 164, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
 
   /* Motion */
   --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -108,6 +109,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* Accessibility: Reduced Motion */
@@ -126,30 +128,35 @@ html, body {
   font-weight: var(--font-weight-medium);
   line-height: 1.15;
   letter-spacing: -0.02em;
+  color: var(--md-sys-color-on-surface);
 }
 
 .headline-large {
   font-size: var(--font-size-headline-large);
   font-weight: var(--font-weight-medium);
   line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
 }
 
 .headline-medium {
   font-size: var(--font-size-headline-medium);
   font-weight: var(--font-weight-medium);
   line-height: 1.25;
+  color: var(--md-sys-color-on-surface);
 }
 
 .title-large {
   font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-medium);
   line-height: 1.3;
+  color: var(--md-sys-color-on-surface);
 }
 
 .title-medium {
   font-size: var(--font-size-title-medium);
   font-weight: var(--font-weight-medium);
   line-height: 1.35;
+  color: var(--md-sys-color-on-surface);
 }
 
 .body-large {
@@ -177,7 +184,7 @@ html, body {
 }
 
 /* ==========================================================================
-   4. BUTTON STYLES (ALWAYS PILL-SHAPED)
+   4. BUTTON STYLES (ALWAYS PILL-SHAPED, MIN 44PX TOUCH TARGET)
    ========================================================================== */
 .btn {
   display: inline-flex;
@@ -189,8 +196,8 @@ html, body {
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-medium);
   line-height: 1;
-  min-height: 48px;
-  padding: 0.75rem 1.625rem;
+  min-height: 44px;
+  padding: 0.65rem 1.35rem;
   border: none;
   cursor: pointer;
   text-decoration: none;
@@ -198,10 +205,11 @@ html, body {
   user-select: none;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .btn:focus-visible {
@@ -223,6 +231,7 @@ html, body {
 .btn-tonal {
   background-color: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
+  border: 1px solid rgba(103, 80, 164, 0.1);
 }
 
 .btn-tonal:hover {
@@ -233,17 +242,18 @@ html, body {
 .btn-outlined {
   background-color: transparent;
   color: var(--md-sys-color-primary);
-  border: 1px solid var(--md-sys-color-outline);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
 }
 
 .btn-outlined:hover {
   background-color: rgba(103, 80, 164, 0.08);
+  border-color: var(--md-sys-color-primary);
 }
 
 .btn-text {
   background-color: transparent;
   color: var(--md-sys-color-primary);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.85rem;
   min-height: 40px;
 }
 
@@ -268,12 +278,13 @@ html, body {
 }
 
 /* ==========================================================================
-   5. CARDS & TONAL SURFACES
+   5. CARDS & TONAL SURFACES (CLEAR HIERARCHY)
    ========================================================================== */
 .card-surface {
-  background-color: var(--md-sys-color-surface-container);
+  background-color: #FFFFFF;
   border-radius: var(--radius-card);
   padding: 1.5rem;
+  border: 1px solid var(--md-sys-color-border-subtle);
   box-shadow: var(--shadow-level-1);
   transition: box-shadow var(--motion-duration-short) var(--motion-easing-standard),
               transform var(--motion-duration-short) var(--motion-easing-standard);
@@ -287,20 +298,32 @@ html, body {
 .card-surface-low {
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: var(--radius-card);
-  padding: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(121, 116, 126, 0.1);
 }
 
 .card-hero {
-  background-color: var(--md-sys-color-surface-container);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5EEF9 100%);
   border-radius: var(--radius-hero);
-  padding: 2.5rem 2rem;
+  padding: 2.5rem 1.75rem;
+  border: 1.5px solid rgba(103, 80, 164, 0.14);
   box-shadow: var(--shadow-level-2);
   position: relative;
   overflow: hidden;
 }
 
+@media (max-width: 768px) {
+  .card-surface {
+    padding: 1.25rem 1rem;
+  }
+  .card-hero {
+    padding: 1.75rem 1rem;
+    border-radius: var(--radius-card-large);
+  }
+}
+
 /* ==========================================================================
-   6. INPUTS (MATERIAL 3 FILLED STYLE)
+   6. INPUTS (MATERIAL 3 FILLED WITH CRISP WHITE BODY & ACCESSIBLE STROKE)
    ========================================================================== */
 .input-container {
   display: flex;
@@ -311,28 +334,29 @@ html, body {
 
 .input-filled {
   width: 100%;
-  min-height: 56px;
-  padding: 1rem 1.25rem;
-  background-color: var(--md-sys-color-surface-container-low);
+  min-height: 52px;
+  padding: 0.875rem 1.25rem;
+  background-color: #FFFFFF;
   color: var(--md-sys-color-on-surface);
   font-family: var(--font-family);
   font-size: var(--font-size-body-medium);
-  border: none;
-  border-top-left-radius: var(--radius-input);
-  border-top-right-radius: var(--radius-input);
-  border-bottom: 2px solid var(--md-sys-color-outline);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-input);
+  border-bottom: 2.5px solid var(--md-sys-color-outline);
   outline: none;
   transition: all var(--motion-duration-short) var(--motion-easing-standard);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .input-filled:focus {
+  border-color: var(--md-sys-color-primary);
   border-bottom-color: var(--md-sys-color-primary);
-  background-color: var(--md-sys-color-surface-container);
+  box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.12);
 }
 
 .input-filled::placeholder {
   color: var(--md-sys-color-on-surface-variant);
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
 .textarea-filled {
@@ -341,50 +365,58 @@ html, body {
 }
 
 /* ==========================================================================
-   7. BADGES & CHIPS (PILL SHAPED)
+   7. BADGES & CHIPS (PILL SHAPED WITH HIGH CONTRAST)
    ========================================================================== */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.35rem 0.875rem;
+  padding: 0.35rem 0.85rem;
   border-radius: var(--radius-pill);
   font-size: var(--font-size-label-small);
   font-weight: var(--font-weight-medium);
   line-height: 1;
   width: fit-content;
+  max-width: 100%;
+  border: 1px solid transparent;
 }
 
 .chip-primary {
   background-color: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
+  border-color: rgba(103, 80, 164, 0.15);
 }
 
 .chip-secondary {
   background-color: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
+  border-color: rgba(103, 80, 164, 0.1);
 }
 
 .chip-critical {
   background-color: var(--md-sys-color-risk-critical-container);
   color: var(--md-sys-color-on-risk-critical-container);
   font-weight: var(--font-weight-bold);
+  border-color: rgba(179, 38, 30, 0.2);
 }
 
 .chip-high {
   background-color: var(--md-sys-color-risk-high-container);
   color: var(--md-sys-color-on-risk-high-container);
   font-weight: var(--font-weight-bold);
+  border-color: rgba(192, 68, 30, 0.2);
 }
 
 .chip-medium {
   background-color: var(--md-sys-color-risk-medium-container);
   color: var(--md-sys-color-on-risk-medium-container);
+  border-color: rgba(140, 98, 0, 0.2);
 }
 
 .chip-low {
   background-color: var(--md-sys-color-risk-low-container);
   color: var(--md-sys-color-on-risk-low-container);
+  border-color: rgba(27, 109, 47, 0.2);
 }
 
 /* ==========================================================================
@@ -401,7 +433,7 @@ html, body {
   filter: blur(54px);
   pointer-events: none;
   z-index: 0;
-  opacity: 0.18;
+  opacity: 0.16;
 }
 
 .blob-primary {
@@ -417,7 +449,7 @@ html, body {
 }
 
 /* ==========================================================================
-   9. APPLICATION LAYOUT
+   9. APPLICATION LAYOUT & RESPONSIVE STRUCTURE
    ========================================================================== */
 .app-container {
   display: flex;
@@ -436,15 +468,15 @@ html, body {
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 0.875rem;
   }
 }
 
 /* Navigation Bar */
 .navbar {
-  background-color: rgba(255, 251, 254, 0.88);
+  background-color: rgba(255, 251, 254, 0.94);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--md-sys-color-surface-container-low);
+  border-bottom: 1px solid rgba(121, 116, 126, 0.14);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -457,20 +489,28 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .navbar-inner {
+    padding: 0.65rem 0.875rem;
+    gap: 0.5rem;
+  }
 }
 
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   text-decoration: none;
   color: var(--md-sys-color-on-surface);
 }
 
 .brand-symbol {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, #4f378b 100%);
   color: #ffffff;
@@ -480,6 +520,7 @@ html, body {
   font-size: 1.25rem;
   font-weight: var(--font-weight-bold);
   box-shadow: var(--shadow-level-1);
+  flex-shrink: 0;
 }
 
 .brand-title-group {
@@ -488,7 +529,7 @@ html, body {
 }
 
 .brand-name {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: var(--font-weight-bold);
   color: var(--md-sys-color-primary);
   line-height: 1.1;
@@ -504,25 +545,30 @@ html, body {
 .nav-links-list {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
   list-style: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+  max-width: 100%;
 }
 
 .nav-pill-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-pill);
   color: var(--md-sys-color-on-surface-variant);
   font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   transition: all var(--motion-duration-short) var(--motion-easing-standard);
+  white-space: nowrap;
 }
 
 .nav-pill-item:hover {
-  background-color: var(--md-sys-color-surface-container);
+  background-color: var(--md-sys-color-surface-container-low);
   color: var(--md-sys-color-on-surface);
 }
 
@@ -537,18 +583,26 @@ html, body {
    ========================================================================== */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
+@media (max-width: 600px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+}
+
 .kpi-card {
-  background-color: var(--md-sys-color-surface-container);
+  background-color: #FFFFFF;
   border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  border: 1px solid var(--md-sys-color-border-subtle);
   box-shadow: var(--shadow-level-1);
 }
 
@@ -561,7 +615,7 @@ html, body {
 }
 
 .kpi-value {
-  font-size: 2rem;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
   font-weight: var(--font-weight-bold);
   color: var(--md-sys-color-on-surface);
   line-height: 1.1;
@@ -574,9 +628,9 @@ html, body {
 
 /* Footer */
 .footer {
-  background-color: var(--md-sys-color-surface-container);
-  border-top: 1px solid var(--md-sys-color-surface-container-low);
-  padding: 2.5rem 1.25rem;
+  background-color: #FFFFFF;
+  border-top: 1px solid rgba(121, 116, 126, 0.14);
+  padding: 2.25rem 1.25rem;
   margin-top: auto;
 }
 

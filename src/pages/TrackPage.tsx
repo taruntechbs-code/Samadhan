@@ -6,9 +6,11 @@ import { Badge } from '../components/common/Badge';
 import { EvidenceBadge } from '../components/common/EvidenceBadge';
 import { GrievanceTimeline } from '../components/citizen/GrievanceTimeline';
 import { getGrievanceByRef, getStoredCitizenGrievances, CitizenGrievanceRecord } from '../../src/services/apiClient';
+import { useTranslation } from '../i18n';
 import { Search, Building2, ShieldCheck, AlertCircle, Info } from 'lucide-react';
 
 export const TrackPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialRef = searchParams.get('ref') || 'SAM-2026-1042';
 
@@ -36,13 +38,13 @@ export const TrackPage: React.FC = () => {
       {/* Header & Search Input */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
         <Badge type="primary">
-          <span>Real-Time Citizen Tracking</span>
+          <span>{t('track.badge')}</span>
         </Badge>
         <h1 className="headline-large" style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>
-          Track Your Grievance Status
+          {t('track.title')}
         </h1>
         <p className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)', maxWidth: '540px' }}>
-          Enter your official SAMADHAN reference number to view real-time nodal officer assignment, SLA countdown, and resolution milestones.
+          {t('track.subtitle')}
         </p>
 
         {/* Search Bar */}
@@ -67,7 +69,7 @@ export const TrackPage: React.FC = () => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}
-              placeholder="e.g. SAM-2026-1042"
+              placeholder={t('track.placeholder')}
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
@@ -75,7 +77,7 @@ export const TrackPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="filled" style={{ minHeight: '48px' }}>
-            <span>Lookup</span>
+            <span>{t('track.lookupBtn')}</span>
           </Button>
         </form>
 
@@ -83,7 +85,7 @@ export const TrackPage: React.FC = () => {
         {sampleList.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Recent demo grievances:
+              {t('track.recentLabel')}
             </span>
             {sampleList.map(s => (
               <button
@@ -105,7 +107,7 @@ export const TrackPage: React.FC = () => {
 
       {/* Lookup Result Card */}
       {record ? (
-        <Card variant="standard" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
+        <Card variant="standard" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.75rem' }}>
           {/* Top Status Banner */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
@@ -115,7 +117,7 @@ export const TrackPage: React.FC = () => {
                 </span>
                 <Badge status={record.status} />
                 <span className="chip chip-secondary" style={{ fontSize: '0.6875rem' }}>
-                  Demo Track
+                  {t('track.demoTrack')}
                 </span>
               </div>
               <h2 className="title-large" style={{ fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)' }}>
@@ -124,8 +126,8 @@ export const TrackPage: React.FC = () => {
             </div>
 
             <div style={{ textAlign: 'right', fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              <div>Submitted: <strong>{record.submittedAt}</strong></div>
-              <div>Applicant: <strong>{record.applicantName}</strong></div>
+              <div>{t('track.submittedOn')} <strong>{record.submittedAt}</strong></div>
+              <div>{t('track.applicant')} <strong>{record.applicantName}</strong></div>
             </div>
           </div>
 
@@ -143,10 +145,10 @@ export const TrackPage: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Building2 size={24} style={{ color: 'var(--md-sys-color-on-secondary-container)' }} />
+              <Building2 size={24} style={{ color: 'var(--md-sys-color-on-secondary-container)', flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.8 }}>
-                  Assigned Authority / Redressal Cell
+                <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.85 }}>
+                  {t('track.assignedAuthority')}
                 </div>
                 <div style={{ fontWeight: 700, color: 'var(--md-sys-color-on-secondary-container)' }}>
                   {record.routedEntity}
@@ -154,7 +156,7 @@ export const TrackPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span className="chip chip-primary" style={{ fontSize: '0.75rem' }}>
                 {record.category}
               </span>
@@ -168,7 +170,7 @@ export const TrackPage: React.FC = () => {
                   sourceUrl: 'https://pgportal.gov.in/darpgdashboard',
                   sourceNote: 'Entity active in official CPGRAMS central live telemetry.',
                 }}
-                label="Authority Verified"
+                label={t('track.authorityVerified')}
               />
             </div>
           </div>
@@ -176,7 +178,7 @@ export const TrackPage: React.FC = () => {
           {/* Grievance Statement */}
           <div style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '1rem 1.25rem', borderRadius: '14px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Grievance Description:
+              {t('track.descHeading')}
             </span>
             <p style={{ fontSize: '0.9375rem', color: 'var(--md-sys-color-on-surface)', marginTop: '0.25rem' }}>
               {record.description}
@@ -185,8 +187,8 @@ export const TrackPage: React.FC = () => {
 
           {/* Visual Redressal Timeline */}
           <div>
-            <h3 className="title-medium" style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
-              Redressal Lifecycle &amp; Milestone Progress
+            <h3 className="title-medium" style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+              {t('track.lifecycleHeading')}
             </h3>
             <GrievanceTimeline items={record.timeline} />
           </div>
@@ -206,15 +208,13 @@ export const TrackPage: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldCheck size={16} style={{ color: 'var(--md-sys-color-risk-low)' }} />
-              <span>
-                Standard DARPG Citizen Charter SLA: Grievances are targeted for resolution within 30 operational days.
-              </span>
+              <ShieldCheck size={16} style={{ color: 'var(--md-sys-color-risk-low)', flexShrink: 0 }} />
+              <span>{t('track.slaNotice')}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' }}>
               <Info size={12} />
-              <span>Demo simulation timeline</span>
+              <span>{t('track.demoNotice')}</span>
             </div>
           </div>
         </Card>
@@ -223,9 +223,9 @@ export const TrackPage: React.FC = () => {
         <Card variant="standard" style={{ textAlign: 'center', padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           <AlertCircle size={40} style={{ color: 'var(--md-sys-color-risk-high)' }} />
           <div>
-            <h3 className="title-large">Reference Not Found</h3>
+            <h3 className="title-large">{t('track.notFoundTitle')}</h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.25rem' }}>
-              No grievance found for reference &quot;{query}&quot;. Please double check the ID or try one of the sample references above.
+              {t('track.notFoundDesc')}
             </p>
           </div>
         </Card>

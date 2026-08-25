@@ -18,6 +18,8 @@ import {
   RoutingRecommendation,
   SystemMetadata,
 } from '../intelligence/types';
+import { FacilityRecord } from '../data/facilityDirectory';
+export type { FacilityRecord };
 import { loadCpgramsDataset } from '../data/csvLoader';
 import { CpgramsService, initializeCpgramsService } from './cpgramsService';
 import {
@@ -348,3 +350,59 @@ export function getGrievanceByRef(referenceNumber: string): CitizenGrievanceReco
   const found = list.find(g => g.id.toUpperCase() === search);
   return found || null;
 }
+
+// 7. Facility Directory Enrichment
+export interface FacilitySearchResults {
+  source: string;
+  sourceNote?: string;
+  total: number;
+  limit: number;
+  results: FacilityRecord[];
+}
+
+export async function fetchFacilitiesSearch(query: {
+  q?: string;
+  state?: string;
+  district?: string;
+  subdistrict?: string;
+  facilityType?: string;
+  limit?: number;
+}): Promise<FacilitySearchResults> {
+  const params = new URLSearchParams();
+  if (query.q) params.set('q', query.q);
+  if (query.state) params.set('state', query.state);
+  if (query.district) params.set('district', query.district);
+  if (query.subdistrict) params.set('subdistrict', query.subdistrict);
+  if (query.facilityType) params.set('facilityType', query.facilityType);
+  if (query.limit) params.set('limit', String(query.limit));
+
+  try {
+    const res = await fetch(`/api/facilities/search?${params.toString()}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Facility search API unavailable:', err);
+  }
+
+  return {
+    source: 'facility_directory',
+    total: 0,
+    limit: query.limit || 10,
+    results: [],
+  };
+}
+
+export async function fetchFacilityById(id: string): Promise<FacilityRecord | null> {
+  try {
+    const res = await fetch(`/api/facilities/${encodeURIComponent(id)}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.facility || null;
+    }
+  } catch (err) {
+    console.warn('Facility detail API unavailable:', err);
+  }
+  return null;
+}
+

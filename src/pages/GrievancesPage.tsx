@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/common/Card';
-import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
-import { getStoredCitizenGrievances } from '../../src/services/apiClient';
-import { FileText, Plus, Building2, ArrowRight } from 'lucide-react';
+import { Button } from '../components/common/Button';
+import { getStoredCitizenGrievances, CitizenGrievanceRecord } from '../../src/services/apiClient';
+import { useTranslation } from '../i18n';
+import { FileText, PlusCircle, Search, Clock, Building2, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const GrievancesPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNDER_REVIEW' | 'IN_PROGRESS' | 'RESOLVED'>('ALL');
-  const grievances = getStoredCitizenGrievances();
+  const [grievances] = useState<CitizenGrievanceRecord[]>(() => getStoredCitizenGrievances());
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   const filtered = grievances.filter(g => {
     if (statusFilter === 'ALL') return true;
@@ -18,51 +20,72 @@ export const GrievancesPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '960px', margin: '0 auto' }}>
-      {/* Page Header */}
+      {/* Header Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <Badge type="primary" style={{ marginBottom: '0.35rem' }}>
-            <span>Citizen Dashboard</span>
-          </Badge>
-          <h1 className="headline-medium">My Lodged Grievances</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <Badge type="primary">
+              <FileText size={12} />
+              <span>{t('myGrievances.badge')}</span>
+            </Badge>
+          </div>
+          <h1 className="headline-large" style={{ fontSize: 'clamp(1.75rem, 4vw, 2.25rem)' }}>
+            {t('myGrievances.title')}
+          </h1>
           <p className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-            Track and manage all public grievances submitted under your account
+            {t('myGrievances.subtitle')}
           </p>
         </div>
 
         <Button variant="filled" onClick={() => navigate('/')}>
-          <Plus size={18} />
-          <span>Lodge New Grievance</span>
+          <PlusCircle size={16} />
+          <span>{t('myGrievances.lodgeNewBtn')}</span>
         </Button>
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--md-sys-color-surface-container-low)', padding: '0.35rem', borderRadius: 'var(--radius-pill)', width: 'fit-content' }}>
-        {(['ALL', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED'] as const).map(st => (
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          backgroundColor: 'var(--md-sys-color-surface-container)',
+          padding: '0.4rem',
+          borderRadius: 'var(--radius-pill)',
+          width: 'fit-content',
+          flexWrap: 'wrap',
+          boxShadow: 'var(--shadow-level-1)',
+        }}
+      >
+        {[
+          { key: 'ALL', label: `${t('myGrievances.all')} (${grievances.length})` },
+          { key: 'UNDER_REVIEW', label: t('myGrievances.underReview') },
+          { key: 'IN_PROGRESS', label: t('myGrievances.inProgress') },
+          { key: 'RESOLVED', label: t('myGrievances.resolved') },
+        ].map(tab => (
           <button
-            key={st}
+            key={tab.key}
             type="button"
             className="btn"
             style={{
               minHeight: '36px',
-              padding: '0.35rem 1rem',
+              padding: '0.4rem 1rem',
               fontSize: '0.8125rem',
-              backgroundColor: statusFilter === st ? 'var(--md-sys-color-primary)' : 'transparent',
-              color: statusFilter === st ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+              backgroundColor: statusFilter === tab.key ? 'var(--md-sys-color-primary)' : 'transparent',
+              color: statusFilter === tab.key ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
             }}
-            onClick={() => setStatusFilter(st)}
+            onClick={() => setStatusFilter(tab.key)}
           >
-            {st === 'ALL' ? `All (${grievances.length})` : st.replace('_', ' ')}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Grievance Cards List */}
+      {/* Grievance Records List */}
       {filtered.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {filtered.map(g => (
+          {filtered.map(item => (
             <Card
-              key={g.id}
+              key={item.id}
               variant="standard"
               style={{
                 display: 'flex',
@@ -71,66 +94,67 @@ export const GrievancesPage: React.FC = () => {
                 cursor: 'pointer',
                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
               }}
-              onClick={() => navigate(`/track?ref=${g.id}`)}
+              onClick={() => navigate(`/track?ref=${item.id}`)}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem' }}>
-                    <span style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--md-sys-color-primary)' }}>
-                      {g.id}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 800, color: 'var(--md-sys-color-primary)', letterSpacing: '0.04em' }}>
+                      {item.id}
                     </span>
-                    <Badge status={g.status} />
+                    <Badge status={item.status} />
                     <span className="chip chip-secondary" style={{ fontSize: '0.6875rem' }}>
-                      {g.category}
+                      {item.category}
                     </span>
                   </div>
-                  <h3 className="title-medium" style={{ fontSize: '1.125rem', color: 'var(--md-sys-color-on-surface)' }}>
-                    {g.title}
+
+                  <h3 className="title-medium" style={{ fontSize: '1.1rem', color: 'var(--md-sys-color-on-surface)' }}>
+                    {item.title}
                   </h3>
                 </div>
 
-                <div style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-                  Submitted: <strong>{g.submittedAt}</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8125rem' }}>
+                  <Clock size={14} />
+                  <span>{t('myGrievances.submitted')} {item.submittedAt}</span>
                 </div>
               </div>
 
-              {/* Routed Entity & Action */}
               <div
                 style={{
-                  backgroundColor: 'var(--md-sys-color-surface-container-low)',
-                  borderRadius: '12px',
-                  padding: '0.75rem 1rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   flexWrap: 'wrap',
                   gap: '0.5rem',
+                  borderTop: '1px solid var(--md-sys-color-surface-container-low)',
+                  paddingTop: '0.75rem',
+                  fontSize: '0.8125rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--md-sys-color-on-surface)' }}>
                   <Building2 size={16} style={{ color: 'var(--md-sys-color-primary)' }} />
-                  <span>Authority: <strong>{g.routedEntity}</strong></span>
+                  <span>{t('myGrievances.authority')} <strong>{item.routedEntity}</strong></span>
                 </div>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--md-sys-color-primary)', fontWeight: 600, fontSize: '0.8125rem' }}>
-                  <span>View Timeline &amp; Progress</span>
-                  <ArrowRight size={14} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>
+                  <span>{t('myGrievances.viewTimeline')}</span>
+                  <ChevronRight size={16} />
                 </div>
               </div>
             </Card>
           ))}
         </div>
       ) : (
-        <Card variant="standard" style={{ textAlign: 'center', padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <FileText size={40} style={{ color: 'var(--md-sys-color-outline)' }} />
+        <Card variant="standard" style={{ textAlign: 'center', padding: '3.5rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <Search size={40} style={{ color: 'var(--md-sys-color-on-surface-variant)', opacity: 0.5 }} />
           <div>
-            <h3 className="title-large">No Grievances Found</h3>
+            <h3 className="title-large">{t('myGrievances.emptyTitle')}</h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.25rem' }}>
-              No grievances matched the selected filter.
+              {t('myGrievances.emptyDesc')}
             </p>
           </div>
           <Button variant="tonal" onClick={() => setStatusFilter('ALL')}>
-            <span>Clear Filter</span>
+            <span>{t('myGrievances.clearFilter')}</span>
           </Button>
         </Card>
       )}

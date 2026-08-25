@@ -114,6 +114,9 @@ export interface RoutingRecommendation {
   matchReason: string;
   alternativeCandidates: CandidateEntityMatch[];
   disclaimer: string;
+  facilityContextAvailable?: boolean;
+  facilityDomain?: 'HEALTHCARE' | 'GENERAL';
+  extractedFacilityQuery?: string;
 }
 
 export interface SystemMetadata {

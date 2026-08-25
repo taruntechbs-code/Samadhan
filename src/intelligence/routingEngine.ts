@@ -86,10 +86,40 @@ const ROUTING_RULES: RoutingCategoryRule[] = [
   },
   {
     category: 'Health & Family Welfare',
-    keywords: ['hospital', 'doctor', 'medicine supply', 'aiims', 'medical treatment', 'vaccine', 'health center', 'clinic', 'ayushman', 'cghs', 'medical negligence'],
+    keywords: [
+      'hospital',
+      'doctor',
+      'medicine supply',
+      'aiims',
+      'medical treatment',
+      'vaccine',
+      'health center',
+      'health centre',
+      'clinic',
+      'ayushman',
+      'cghs',
+      'medical negligence',
+      'phc',
+      'chc',
+      'primary health centre',
+      'primary health center',
+      'community health centre',
+      'community health center',
+      'dispensary',
+      'sub centre',
+      'subcenter',
+      'uhc',
+      'civil hospital',
+      'district hospital',
+      'ambulance',
+      'अस्पताल',
+      'स्वास्थ्य केंद्र',
+      'पीएचसी',
+      'सीएचसी',
+    ],
     primaryEntity: 'Health & Family Welfare',
     alternatives: ['Ayush', 'Pharmaceuticals'],
-    explanation: 'Keywords match public healthcare centers, central government hospitals (AIIMS), medicine availability, or healthcare schemes.',
+    explanation: 'Keywords match public healthcare centers, PHCs, CHCs, hospitals, medicine availability, or healthcare schemes.',
   },
   {
     category: 'Ayush & Traditional Medicine',
@@ -154,7 +184,8 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     };
   }
 
-  const normalized = queryText.toLowerCase().trim();
+  const sanitized = queryText.slice(0, 2000);
+  const normalized = sanitized.toLowerCase().trim();
 
   let bestMatch: RoutingCategoryRule | null = null;
   let bestScore = 0;
@@ -224,6 +255,10 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
   const primaryMatchInfo = matchScores.find(m => m.rule.category === bestMatch!.category);
   const matchedKwStr = primaryMatchInfo?.matchedKeywords.join(', ') || 'relevant topics';
 
+  const isHealthcare =
+    bestMatch.category === 'Health & Family Welfare' ||
+    bestMatch.category === 'Ayush & Traditional Medicine';
+
   return {
     queryText,
     status,
@@ -233,5 +268,8 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     matchReason: `Detected keywords (${matchedKwStr}) matching ${bestMatch.category}: ${bestMatch.explanation}`,
     alternativeCandidates: alternatives,
     disclaimer: ROUTING_DISCLAIMER,
+    facilityContextAvailable: isHealthcare,
+    facilityDomain: isHealthcare ? 'HEALTHCARE' : 'GENERAL',
+    extractedFacilityQuery: isHealthcare ? queryText : undefined,
   };
 }

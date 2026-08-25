@@ -5,6 +5,7 @@ import { SamadhanJourney } from '../components/citizen/SamadhanJourney';
 import { RoutingRecommendation } from '../intelligence/types';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { useTranslation } from '../i18n';
 import {
   Search,
   Zap,
@@ -17,6 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 export const HomePage: React.FC = () => {
+  const { t, language } = useTranslation();
   const navigate = useNavigate();
   const [selectedRouting, setSelectedRouting] = useState<RoutingRecommendation | null>(null);
   const [grievanceText, setGrievanceText] = useState('');
@@ -35,12 +37,48 @@ export const HomePage: React.FC = () => {
   };
 
   const CATEGORIES = [
-    { title: 'Income Tax & TDS', icon: <CreditCard size={20} />, query: 'Income tax return refund delayed for 6 months after e-verification' },
-    { title: 'Railways & IRCTC', icon: <Train size={20} />, query: 'Tatkal ticket cancelled automatically but refund not credited to account' },
-    { title: 'EPFO & Pension', icon: <FileText size={20} />, query: 'EPFO transfer of provident fund balance from previous company rejected' },
-    { title: 'Banking & UPI', icon: <Zap size={20} />, query: 'ATM transaction failed and cash debited from my savings bank account' },
-    { title: 'Electricity & Power', icon: <Lightbulb size={20} />, query: 'Frequent voltage fluctuation and electric meter faulty in my area' },
-    { title: 'Health & Hospitals', icon: <HeartPulse size={20} />, query: 'Hospital refused Ayushman Bharat health insurance scheme admission' },
+    {
+      title: t('categories.incomeTax'),
+      icon: <CreditCard size={20} />,
+      query: language === 'hi'
+        ? 'आयकर रिटर्न रिफंड ई-सत्यापन के 6 महीने बाद भी बैंक खाते में जमा नहीं हुआ'
+        : 'Income tax return refund delayed for 6 months after e-verification',
+    },
+    {
+      title: t('categories.railways'),
+      icon: <Train size={20} />,
+      query: language === 'hi'
+        ? 'तत्काल टिकट अपने आप रद्द हुआ लेकिन रिफंड खाते में वापस नहीं आया'
+        : 'Tatkal ticket cancelled automatically but refund not credited to account',
+    },
+    {
+      title: t('categories.epfo'),
+      icon: <FileText size={20} />,
+      query: language === 'hi'
+        ? 'पिछली कंपनी से ईपीएफओ भविष्य निधि बैलेंस ट्रांसफर का अनुरोध निरस्त'
+        : 'EPFO transfer of provident fund balance from previous company rejected',
+    },
+    {
+      title: t('categories.banking'),
+      icon: <Zap size={20} />,
+      query: language === 'hi'
+        ? 'एटीएम लेनदेन विफल हुआ और बचत बैंक खाते से पैसे कट गए'
+        : 'ATM transaction failed and cash debited from my savings bank account',
+    },
+    {
+      title: t('categories.electricity'),
+      icon: <Lightbulb size={20} />,
+      query: language === 'hi'
+        ? 'मेरे इलाके में बिजली के वोल्टेज में अत्यधिक उतार-चढ़ाव और मीटर खराब'
+        : 'Frequent voltage fluctuation and electric meter faulty in my area',
+    },
+    {
+      title: t('categories.health'),
+      icon: <HeartPulse size={20} />,
+      query: language === 'hi'
+        ? 'अस्पताल ने आयुष्मान भारत स्वास्थ्य योजना के तहत भर्ती करने से मना कर दिया'
+        : 'Hospital refused Ayushman Bharat health insurance scheme admission',
+    },
   ];
 
   return (
@@ -55,14 +93,14 @@ export const HomePage: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
-            <h3 className="title-large">Frequently Lodged Categories</h3>
+            <h3 className="title-large">{t('categories.heading')}</h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Select a category to pre-fill an AI grievance query
+              {t('categories.subheading')}
             </p>
           </div>
           <Button variant="tonal" onClick={() => navigate('/track')}>
             <Search size={16} />
-            <span>Track Existing Grievance</span>
+            <span>{t('categories.trackExisting')}</span>
           </Button>
         </div>
 
@@ -92,6 +130,7 @@ export const HomePage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  flexShrink: 0,
                 }}
               >
                 {cat.icon}
@@ -101,7 +140,7 @@ export const HomePage: React.FC = () => {
                   {cat.title}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-                  Click to pre-fill
+                  {t('categories.clickToPrefill')}
                 </div>
               </div>
             </Card>

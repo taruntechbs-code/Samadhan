@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Shield, ExternalLink, ShieldCheck } from 'lucide-react';
 import { TransparencyModal } from '../common/TransparencyModal';
+import { useTranslation } from '../../i18n';
 
 export const Footer: React.FC = () => {
+  const { t } = useTranslation();
   const [isTrustOpen, setIsTrustOpen] = useState(false);
 
   return (
@@ -12,10 +14,10 @@ export const Footer: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
               <Shield size={16} />
-              <span>SAMADHAN &mdash; Citizen-Centric Public Redressal &amp; Intelligence Platform</span>
+              <span>{t('footer.title')}</span>
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-              Developed for &quot;Build What Moves India&quot; using verified DARPG CPGRAMS analytics datasets.
+              {t('footer.desc')}
             </p>
           </div>
 
@@ -27,7 +29,7 @@ export const Footer: React.FC = () => {
               onClick={() => setIsTrustOpen(true)}
             >
               <ShieldCheck size={14} />
-              <span>Methodology &amp; Disclosures</span>
+              <span>{t('footer.methodology')}</span>
             </button>
             <span>•</span>
             <a
@@ -36,12 +38,12 @@ export const Footer: React.FC = () => {
               rel="noopener noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--md-sys-color-primary)', textDecoration: 'none' }}
             >
-              <span>CPGRAMS Official Portal</span>
+              <span>{t('footer.officialPortal')}</span>
               <ExternalLink size={12} />
             </a>
             <span>•</span>
             <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-              &copy; 2026 SAMADHAN Initiative
+              {t('footer.copyright')}
             </span>
           </div>
         </div>

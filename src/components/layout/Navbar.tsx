@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, FileText, BarChart3, Globe, ShieldCheck } from 'lucide-react';
 import { TransparencyModal } from '../common/TransparencyModal';
+import { useTranslation } from '../../i18n';
 
 export const Navbar: React.FC = () => {
-  const [lang, setLang] = useState<'EN' | 'HI'>('EN');
+  const { language, toggleLanguage, t } = useTranslation();
   const [isTrustOpen, setIsTrustOpen] = useState(false);
   const location = useLocation();
   const isGov = location.pathname.startsWith('/government');
@@ -20,7 +21,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="brand-title-group">
               <span className="brand-name">SAMADHAN</span>
-              <span className="brand-tagline">Public Grievance Redressal &amp; Intelligence</span>
+              <span className="brand-tagline">{t('nav.tagline')}</span>
             </div>
           </NavLink>
 
@@ -34,7 +35,7 @@ export const Navbar: React.FC = () => {
                   end
                 >
                   <Home size={18} />
-                  <span>{lang === 'EN' ? 'Citizen Home' : 'मुख्य पृष्ठ'}</span>
+                  <span>{t('nav.home')}</span>
                 </NavLink>
               </li>
               <li>
@@ -43,7 +44,7 @@ export const Navbar: React.FC = () => {
                   className={({ isActive }) => `nav-pill-item ${isActive ? 'active' : ''}`}
                 >
                   <Search size={18} />
-                  <span>{lang === 'EN' ? 'Track Status' : 'स्थिति जांचें'}</span>
+                  <span>{t('nav.track')}</span>
                 </NavLink>
               </li>
               <li>
@@ -52,7 +53,7 @@ export const Navbar: React.FC = () => {
                   className={({ isActive }) => `nav-pill-item ${isActive ? 'active' : ''}`}
                 >
                   <FileText size={18} />
-                  <span>{lang === 'EN' ? 'My Grievances' : 'मेरी शिकायतें'}</span>
+                  <span>{t('nav.grievances')}</span>
                 </NavLink>
               </li>
               <li>
@@ -65,34 +66,43 @@ export const Navbar: React.FC = () => {
                   }}
                 >
                   <BarChart3 size={18} />
-                  <span>{lang === 'EN' ? 'Gov Operations' : 'प्रशासनिक डैशबोर्ड'}</span>
+                  <span>{t('nav.government')}</span>
                 </NavLink>
               </li>
             </ul>
           </nav>
 
           {/* Trust & Language Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <button
               type="button"
               className="btn btn-text"
-              style={{ fontSize: '0.8125rem', padding: '0.4rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+              style={{ fontSize: '0.8125rem', padding: '0.4rem 0.65rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               onClick={() => setIsTrustOpen(true)}
-              title="Methodology & Data Transparency"
+              title={t('nav.trust')}
             >
               <ShieldCheck size={16} style={{ color: 'var(--md-sys-color-primary)' }} />
-              <span>{lang === 'EN' ? 'Trust & Data' : 'पारदर्शिता'}</span>
+              <span>{t('nav.trust')}</span>
             </button>
 
             <button
               type="button"
-              className="btn btn-text"
-              style={{ fontSize: '0.8125rem', padding: '0.4rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-              onClick={() => setLang(l => (l === 'EN' ? 'HI' : 'EN'))}
-              title="Toggle Language"
+              className="btn btn-tonal"
+              style={{
+                fontSize: '0.8125rem',
+                minHeight: '36px',
+                padding: '0.35rem 0.85rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontWeight: 600,
+              }}
+              onClick={toggleLanguage}
+              title={`Switch to ${language === 'en' ? 'Hindi' : 'English'}`}
+              aria-label="Toggle language between English and Hindi"
             >
-              <Globe size={16} />
-              <span>{lang === 'EN' ? 'EN' : 'HI'}</span>
+              <Globe size={15} />
+              <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Button } from '../common/Button';
 import { EvidenceBadge } from '../common/EvidenceBadge';
 import { AlertCircle, ShieldAlert, ChevronRight } from 'lucide-react';
 import { RiskFactor, RiskLevel } from '../../intelligence/types';
+import { useTranslation } from '../../i18n';
 
 export interface AttentionActionItem {
   entity: string;
@@ -40,6 +41,8 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
   items,
   onSelectDepartment,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Card variant="standard" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -54,13 +57,14 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             <ShieldAlert size={20} />
           </div>
           <div>
-            <h3 className="title-large" style={{ fontSize: '1.25rem' }}>
-              Action Required &bull; Priority Triage Cockpit
+            <h3 className="title-large" style={{ fontSize: '1.2rem' }}>
+              {t('gov.tabAttention')} &bull; Action Cockpit
             </h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
               Identifies public authorities requiring targeted administrative intervention with explainable causation
@@ -70,7 +74,7 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="chip chip-critical">
-            <span>{items.length} Flagged Authorities</span>
+            <span>{items.length} {t('gov.flaggedAuthorities')}</span>
           </span>
         </div>
       </div>
@@ -86,18 +90,18 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
               key={idx}
               style={{
                 backgroundColor: 'var(--md-sys-color-surface-container-low)',
-                borderRadius: '20px',
-                padding: '1.5rem',
+                borderRadius: '18px',
+                padding: '1.25rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '1rem',
+                gap: '0.875rem',
                 borderLeft: `5px solid ${item.severity === 'CRITICAL' ? 'var(--md-sys-color-risk-critical)' : 'var(--md-sys-color-risk-high)'}`,
               }}
             >
               {/* Header: WHAT & HOW SERIOUS */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <h4 className="title-medium" style={{ fontSize: '1.1875rem', color: 'var(--md-sys-color-on-surface)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
+                  <h4 className="title-medium" style={{ fontSize: '1.1rem', color: 'var(--md-sys-color-on-surface)' }}>
                     {item.entity}
                   </h4>
                   <span className="chip chip-secondary" style={{ fontSize: '0.75rem' }}>
@@ -105,29 +109,29 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
                   </span>
                   <Badge riskLevel={riskLevel} />
                   <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
-                    Score: {item.riskScore}/100
+                    {t('gov.scoreLabel')} {item.riskScore}/100
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <EvidenceBadge evidence={item.evidence} />
                   <Button
                     variant="tonal"
                     style={{ minHeight: '36px', padding: '0.35rem 0.85rem', fontSize: '0.8125rem' }}
                     onClick={() => onSelectDepartment(item.entity)}
                   >
-                    <span>Inspect Profile</span>
+                    <span>{t('gov.inspectProfile')}</span>
                     <ChevronRight size={16} />
                   </Button>
                 </div>
               </div>
 
-              {/* 3-Column Structured Breakdown: WHAT? WHY? WHAT SHOULD BE DONE? */}
+              {/* 2-Column Structured Breakdown: WHY? WHAT SHOULD BE DONE? */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                 {/* WHY IT WAS FLAGGED */}
-                <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-surface-container)' }}>
+                <div style={{ backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-border-subtle)' }}>
                   <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    WHY THIS AUTHORITY WAS FLAGGED
+                    {t('gov.whyFlaggedHeading')}
                   </span>
                   <ul style={{ paddingLeft: '1.125rem', fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface)', marginTop: '0.35rem' }}>
                     {item.reasons.map((r, i) => (
@@ -138,10 +142,10 @@ export const AttentionActionCockpit: React.FC<AttentionActionCockpitProps> = ({
 
                 {/* WHAT SHOULD BE DONE */}
                 {primaryRec && (
-                  <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.75)', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-surface-container)' }}>
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '14px', border: '1px solid var(--md-sys-color-border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--md-sys-color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       <AlertCircle size={12} />
-                      <span>RECOMMENDED OPERATIONAL ACTION ({primaryRec.priority})</span>
+                      <span>{t('gov.recActionHeading')} ({primaryRec.priority})</span>
                     </div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)', marginTop: '0.35rem' }}>
                       {primaryRec.action}

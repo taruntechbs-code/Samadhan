@@ -5,6 +5,8 @@ import { Badge } from '../common/Badge';
 import { EvidenceBadge } from '../common/EvidenceBadge';
 import { routeGrievance } from '../../services/apiClient';
 import { RoutingRecommendation } from '../../intelligence/types';
+import { useTranslation } from '../../i18n';
+import { FacilityContextCard } from './FacilityContextCard';
 import { Mic, Send, Sparkles, Building2, CheckCircle2, ArrowRight, ShieldCheck, Cpu, RefreshCw } from 'lucide-react';
 
 interface GrievanceInputHeroProps {
@@ -12,24 +14,34 @@ interface GrievanceInputHeroProps {
   externalQuery?: string;
 }
 
-const QUICK_STARTERS = [
-  'Income tax refund for AY 2025-26 is still not credited to my bank account',
-  'EPFO PF balance transfer request from previous employer rejected without reason',
-  'Cash debited from ATM but bank machine failed to dispense money',
-  'IRCTC train tatkal ticket was cancelled automatically but refund pending',
-  'Electricity voltage fluctuation and frequent power cut in residential area',
-  'Passport reissue application stuck at verification stage for over a month',
-];
-
 export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   onOpenSubmitModal,
   externalQuery,
 }) => {
+  const { t, language } = useTranslation();
   const [text, setText] = useState(externalQuery || '');
   const [isListening, setIsListening] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
   const [routingStage, setRoutingStage] = useState<'idle' | 'understanding' | 'analyzing' | 'matched'>('idle');
   const [routingResult, setRoutingResult] = useState<RoutingRecommendation | null>(null);
+
+  const QUICK_STARTERS = language === 'hi'
+    ? [
+        'आयकर रिटर्न रिफंड 2025-26 ई-सत्यापन के बाद भी खाते में जमा नहीं हुआ',
+        'ईपीएफओ (EPFO) भविष्य निधि बैलेंस ट्रांसफर का अनुरोध बिना कारण निरस्त किया गया',
+        'एटीएम मशीन से नकदी नहीं निकली लेकिन बैंक खाते से पैसे कट गए',
+        'आईआरसीटीसी ट्रेन तत्काल टिकट रद्द हुआ पर रिफंड अभी तक लंबित है',
+        'आवासीय क्षेत्र में बिजली की वोल्टेज में उतार-चढ़ाव और बार-बार कटौती',
+        'पासपोर्ट नवीनीकरण आवेदन एक महीने से सत्यापन चरण में अटका है',
+      ]
+    : [
+        'Income tax refund for AY 2025-26 is still not credited to my bank account',
+        'EPFO PF balance transfer request from previous employer rejected without reason',
+        'Cash debited from ATM but bank machine failed to dispense money',
+        'IRCTC train tatkal ticket was cancelled automatically but refund pending',
+        'Electricity voltage fluctuation and frequent power cut in residential area',
+        'Passport reissue application stuck at verification stage for over a month',
+      ];
 
   useEffect(() => {
     if (externalQuery) {
@@ -73,7 +85,11 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   const handleMicClick = () => {
     setIsListening(true);
     setTimeout(() => {
-      setText('My ITR income tax refund of ₹18,500 has been delayed for the past 4 months after e-verification.');
+      setText(
+        language === 'hi'
+          ? 'मेरा आयकर (ITR) रिफंड ₹18,500 ई-सत्यापन के बाद पिछले 4 महीनों से लंबित है।'
+          : 'My ITR income tax refund of ₹18,500 has been delayed for the past 4 months after e-verification.'
+      );
       setIsListening(false);
     }, 1100);
   };
@@ -94,16 +110,16 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       <Card variant="hero" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
         <Badge type="primary">
           <Sparkles size={14} />
-          <span>Intelligent Civic Grievance Triage</span>
+          <span>{t('hero.badge')}</span>
         </Badge>
 
-        <h1 className="display-large" style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', maxWidth: '840px' }}>
-          Tell us your problem. <br />
-          <span style={{ color: 'var(--md-sys-color-primary)' }}>We’ll find the right department.</span>
+        <h1 className="display-large" style={{ maxWidth: '840px' }}>
+          {t('hero.titleMain')} <br />
+          <span style={{ color: 'var(--md-sys-color-primary)' }}>{t('hero.titleSub')}</span>
         </h1>
 
         <p className="body-large" style={{ maxWidth: '640px', color: 'var(--md-sys-color-on-surface-variant)' }}>
-          Citizens should not need to understand government bureaucracy, ministry hierarchies, or administrative codes to receive prompt redressal.
+          {t('hero.subtitle')}
         </p>
 
         {/* Natural Language Grievance Text Input */}
@@ -112,14 +128,14 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             <textarea
               className="input-filled textarea-filled"
               style={{
-                fontSize: '1.0625rem',
+                fontSize: '1rem',
                 minHeight: '140px',
-                padding: '1.25rem 1.5rem',
-                paddingBottom: '3.75rem',
-                borderRadius: 'var(--radius-card)',
-                boxShadow: 'var(--shadow-level-1)',
+                padding: '1.25rem',
+                paddingBottom: '4rem',
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 2px 6px rgba(103, 80, 164, 0.08)',
               }}
-              placeholder="Describe what happened in simple everyday words... (e.g. 'My pension payment has been delayed for 2 months by EPFO')"
+              placeholder={t('hero.placeholder')}
               value={text}
               onChange={e => setText(e.target.value)}
               aria-label="Describe your grievance in simple words"
@@ -131,27 +147,29 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             style={{
               position: 'absolute',
               bottom: '12px',
-              left: '16px',
-              right: '16px',
+              left: '14px',
+              right: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <button
                 type="button"
                 className="btn btn-text"
                 style={{
                   fontSize: '0.8125rem',
-                  padding: '0.4rem 0.75rem',
+                  padding: '0.35rem 0.65rem',
                   color: isListening ? 'var(--md-sys-color-risk-critical)' : 'var(--md-sys-color-primary)',
                 }}
                 onClick={handleMicClick}
                 title="Voice Speech-to-Text Input"
               >
                 <Mic size={18} />
-                <span>{isListening ? 'Listening to voice...' : 'Speak Problem'}</span>
+                <span>{isListening ? t('hero.listening') : t('hero.speakBtn')}</span>
               </button>
 
               {text && (
@@ -162,7 +180,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   onClick={handleReset}
                 >
                   <RefreshCw size={14} />
-                  <span>Clear</span>
+                  <span>{t('hero.clearBtn')}</span>
                 </button>
               )}
             </div>
@@ -170,11 +188,15 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             {routingResult && routingResult.recommendedEntity && (
               <Button
                 variant="filled"
-                style={{ minHeight: '40px', padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
+                style={{ minHeight: '38px', padding: '0.4rem 1.1rem', fontSize: '0.8125rem' }}
                 onClick={() => onOpenSubmitModal(routingResult, text)}
               >
-                <span>Proceed with Grievance</span>
-                <ArrowRight size={16} />
+                <span>{t('hero.proceedBtn')}</span>
+                <ArrowRight
+                  size={18}
+                  strokeWidth={2.2}
+                  aria-hidden="true"
+                />
               </Button>
             )}
           </div>
@@ -185,7 +207,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>
             <Cpu size={16} className="spin" />
             <span>
-              {routingStage === 'understanding' ? '1. Understanding grievance vocabulary...' : '2. Matching across 278 departmental authorities...'}
+              {routingStage === 'understanding' ? t('hero.step1') : t('hero.step2')}
             </span>
           </div>
         )}
@@ -193,7 +215,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         {/* Quick Example Starters */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', maxWidth: '780px' }}>
           <span style={{ fontSize: '0.8125rem', color: 'var(--md-sys-color-on-surface-variant)', alignSelf: 'center', marginRight: '0.25rem' }}>
-            Popular topics:
+            {t('hero.popularTopics')}
           </span>
           {QUICK_STARTERS.map((qs, i) => (
             <button
@@ -203,7 +225,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               style={{ minHeight: '34px', padding: '0.35rem 0.85rem', fontSize: '0.75rem' }}
               onClick={() => handleQuickStarter(qs)}
             >
-              {qs.split(' ')[0]} {qs.split(' ')[1]} {qs.split(' ')[2]}...
+              {qs.split(' ').slice(0, 3).join(' ')}...
             </button>
           ))}
         </div>
@@ -224,6 +246,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  flexShrink: 0,
                 }}
               >
                 <Building2 size={24} />
@@ -233,10 +256,10 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                   <Badge type="primary">
                     <CheckCircle2 size={12} />
-                    <span>Auto-Identified Destination Authority</span>
+                    <span>{t('hero.autoMatched')}</span>
                   </Badge>
                   <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--md-sys-color-primary)' }}>
-                    {Math.round(routingResult.confidence * 100)}% Prototype Confidence
+                    {Math.round(routingResult.confidence * 100)}% {t('hero.prototypeConfidence')}
                   </span>
                 </div>
 
@@ -244,7 +267,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   {routingResult.recommendedEntity}
                 </h2>
                 <p style={{ fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface-variant)', marginTop: '0.25rem' }}>
-                  Category: <strong>{routingResult.detectedCategory}</strong> &bull; {routingResult.matchReason}
+                  <strong>{routingResult.detectedCategory}</strong> &bull; {routingResult.matchReason}
                 </p>
               </div>
             </div>
@@ -253,16 +276,20 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               variant="filled"
               onClick={() => onOpenSubmitModal(routingResult, text)}
             >
-              <span>Lodge Grievance to this Authority</span>
-              <Send size={16} />
+              <span>{t('hero.lodgeToAuthority')}</span>
+              <Send
+                size={18}
+                strokeWidth={2.2}
+                aria-hidden="true"
+              />
             </Button>
           </div>
 
           {/* Alternative Candidates */}
           {routingResult.alternativeCandidates.length > 0 && (
-            <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--md-sys-color-surface-container-low)' }}>
+            <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--md-sys-color-border-subtle)' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Alternative Jurisdiction Candidates:
+                {t('hero.altCandidates')}
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
                 {routingResult.alternativeCandidates.map((alt, idx) => (
@@ -276,6 +303,14 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Facility Directory Enrichment Context (when Healthcare detected) */}
+          {routingResult.facilityContextAvailable && (
+            <FacilityContextCard
+              queryText={text}
+              facilityDomain={routingResult.facilityDomain}
+            />
           )}
 
           <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -294,7 +329,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 sourceUrl: 'https://pgportal.gov.in/darpgdashboard',
                 sourceNote: 'Entity catalogued in DARPG official master registry.',
               }}
-              label="Source Authority Verified"
+              label={t('hero.sourceVerified')}
             />
           </div>
         </Card>

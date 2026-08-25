@@ -24,7 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {icon && iconPosition === 'left' && <span className="btn-icon">{icon}</span>}
-      {children && <span>{children}</span>}
+      {children}
       {icon && iconPosition === 'right' && <span className="btn-icon">{icon}</span>}
     </button>
   );

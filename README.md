@@ -183,9 +183,10 @@ All API routes return standardized JSON responses and structured error codes.
 | `GET` | `/api/metrics` | Catalog of 31 distinct CPGRAMS metrics |
 | `GET` | `/api/intelligence/overview` | Executive analytical findings, aging concentration, and evidence links |
 | `GET` | `/api/intelligence/attention` | Action cockpit with 0–100 risk scores, causal factors, and recommendations |
-| `GET` | `/api/intelligence/departments/:entity` | Department intelligence profile with risk breakdown and evidence |
 | `GET` | `/api/intelligence/routing?text=...` | Grievance routing with category detection, confidence, and alternatives |
 | `GET` | `/api/intelligence/trends/:entity` | Directional performance trajectory (`IMPROVING`, `DECLINING`, `STABLE`) |
+| `GET` | `/api/facilities/search?q=...` | Geographic healthcare facility search & administrative jurisdiction resolution |
+| `GET` | `/api/facilities/:id` | Detailed facility record lookup by ID or NIN identifier |
 
 ---
 
@@ -382,13 +383,34 @@ npm run preview
 
 ---
 
+## Facility Directory Enrichment
+
+SAMADHAN integrates the National Public Healthcare Facility Directory (`data/facility_directory.csv`, 200,440 records) as an **administrative jurisdiction and geographic resolution layer**:
+
+* **Dataset Purpose & Role**:
+  * **CPGRAMS Dataset**: Powers grievance/authority operational intelligence, disposal velocity, aging pendency analytics, operational risk scoring, and evidence-backed recommendations.
+  * **Facility Directory**: Provides healthcare-specific facility names, facility classifications (PHC, CHC, District Hospital), operational status (Active/Physical), urban/rural settings, and subdistrict/district administrative context.
+  * **Distinct Provenance**: The Facility Directory provides local geographic context; it does not measure or prove grievance performance.
+* **Healthcare-Only Activation & No Fabrication**:
+  * Triggered only when healthcare intent or terminology is detected (e.g. *hospital, doctor, clinic, PHC, CHC, dispensary, medicine stock*).
+  * If the citizen provides specific geographic/facility names (*"PHC in Adoni Kurnool"*), the system resolves the matching administrative entity.
+  * If healthcare intent is recognized without specific location names (*"PHC near my village has no medicines"*), the system provides non-intrusive guidance rather than fabricating a false facility match.
+  * Non-healthcare grievances (Income Tax, Railways, EPFO, Banking, Electricity, etc.) execute standard authority routing with zero facility directory processing.
+* **Server-Side In-Memory Caching (Zero Client Bundle Bloat)**:
+  * The ~20.9 MB facility dataset is stored in `data/facility_directory.csv` and is **never placed in `public/` or shipped to the client browser**.
+  * The dataset is parsed once on the server and cached in memory, avoiding repeated disk reads. Subsequent bounded searches operate against the in-memory representation.
+* **Evidence & Provenance Distinction**:
+  * The system's `EvidenceBadge` and audit transparency layers clearly demarcate `Facility Directory` records from verified `CPGRAMS` grievance metrics, maintaining strict data lineage.
+
+---
+
 ## Testing & Verification
 
 ```bash
-# Run all unit, service, intelligence, and API integration tests (63 tests)
+# Run all unit, service, intelligence, i18n, facility, and API integration tests (90 tests)
 npm test
 
-# Run API integration test suite specifically (31 tests)
+# Run API integration test suite specifically (35 tests)
 npm run test:api
 
 # Run the 11-point Real CPGRAMS Dataset Verification Suite
@@ -396,10 +418,68 @@ npm run verify
 ```
 
 ### Test Suite Summary
+* `src/data/facilityDirectory.test.ts`: **14 / 14 passing**
+* `src/i18n/i18n.test.ts`: **8 / 8 passing**
 * `src/services/cpgramsService.test.ts`: **18 / 18 passing**
-* `src/intelligence/intelligence.test.ts`: **14 / 14 passing**
-* `src/api/app.test.ts`: **31 / 31 passing**
-* **Total**: **63 / 63 passing tests** (100% pass rate).
+* `src/intelligence/intelligence.test.ts`: **16 / 16 passing**
+* `src/api/app.test.ts`: **35 / 35 passing**
+* **Total**: **91 / 91 passing tests** (100% pass rate).
+
+---
+
+## Multilingual Support & Hindi Localization
+
+SAMADHAN provides genuine, full-application Hindi (`हिन्दी`) and English (`English`) bilingual localization powered by a decoupled `LanguageContext` architecture (`src/i18n/`):
+* **Decoupled Fast Refresh Architecture**: The React context provider (`LanguageContext.tsx`) and the translation hook (`useTranslation.ts`) are modularized separately to maintain clean React Fast Refresh boundaries during Vite development without HMR invalidations.
+* **Dynamic Real-Time Switching**: Toggling the language selector immediately updates all page content, cards, navigation items, metrics, timelines, modals, and scenario workflows without requiring a page reload.
+* **Persistent Preference**: Language preference is safely stored in client `localStorage` and automatically restored on return visits.
+* **Natural Civic Phrasing**: Utilizes authentic Indian administrative terms (e.g. *लोक शिकायत निवारण*, *समीक्षाधीन*, *निराकृत*, *अपीलीय निवारण*, *समय-आधारित वितरण*, *सुविधा निर्देशिका*) while maintaining official department titles for data precision.
+
+---
+
+## Security & Privacy
+
+The following security controls are **actually implemented** within the current application codebase:
+1. **Input Validation & Sanitization**:
+   * Numeric query parameters (`minDisposalRate`, `maxDisposalRate`, thresholds) validate bounds [0, 100] and reject non-numeric characters with clean `400 INVALID_PARAMETER` errors.
+   * Text routing inputs (`/api/intelligence/routing`) are capped at 2,000 characters to prevent regex search exhaustion.
+   * Facility search queries (`q`) are restricted to a maximum of 200 characters.
+   * Facility result limit is bounded between 1 and 50 records.
+   * Sort fields and ordering parameters are validated against strict allowed enums.
+2. **Facility Data Isolation**:
+   * Stored in `data/facility_directory.csv` (outside `public/`), preventing the 20.9 MB dataset from being exposed as a static asset or copied into production client builds (`dist/`).
+   * Searches operate via server-side in-memory substring matching (`includes`) with zero dynamic regex compilation on user input.
+   * Prevents arbitrary filesystem access by validating parameters and rejecting path traversal.
+3. **Standardized Error Handling**:
+   * API responses use a structured `{ error: { code, message } }` contract.
+   * Centralized error middleware traps internal exceptions and prevents raw stack traces, file system paths, or internal server errors from leaking to clients.
+4. **HTTP Security Headers**:
+   * `X-Content-Type-Options: nosniff` (prevents MIME type sniffing).
+   * `X-Frame-Options: SAMEORIGIN` (mitigates clickjacking attacks).
+   * `Referrer-Policy: strict-origin-when-cross-origin` (protects referrer metadata).
+   * `X-XSS-Protection: 1; mode=block`.
+   * Baseline Content Security Policy (`CSP`) configured for Google Fonts and Vite development assets.
+5. **Data Isolation & Read-Only Protection**:
+   * Strict separation of master datasets; analytical transformations operate in immutable memory partitions without modifying or risking underlying dataset files.
+6. **No Secret or Token Leakage**:
+   * No API keys, credentials, or secrets are embedded in source files. `.env` and log files are excluded by `.gitignore`.
+7. **No Unsafe HTML Injection**:
+   * React component tree renders text safely through JSX escaping; no `dangerouslySetInnerHTML` is used for user or query-controlled strings.
+8. **Transparent Demonstration Boundary**:
+   * Generated grievance references (`SAM-2026-XXXX`) are clearly designated as demo/simulation records and stored locally in browser state.
+
+---
+
+## Production Security Requirements
+
+For an actual enterprise or live government deployment of SAMADHAN, the following additional capabilities would be required:
+* **Citizen Identity Verification**: Integration with official DigiLocker / Aadhaar OTP authentication or Jan Parichay Single Sign-On.
+* **Role-Based Access Control (RBAC)**: Fine-grained permissions separating public citizen access, nodal grievance officers, appellate authorities, and national ministry directors.
+* **Direct Government API Authorization**: Mutual TLS (mTLS) and OAuth 2.0 / API gateway keys for transmitting grievances directly to DARPG CPGRAMS central servers.
+* **Rate Limiting & DDoS Protection**: Cloudflare / API Gateway token bucket rate limiting to prevent spam submissions or brute force endpoint discovery.
+* **Audit Logging & SIEM**: Immutable centralized audit logs capturing all administrative actions, data exports, and status transitions for legal compliance.
+* **Static Application Security Testing (SAST) & Dynamic Scanning**: Automated dependency CVE scanning, container image scanning, and regular third-party penetration testing.
+* **Data Retention & Privacy Policies**: Formal data residency and citizen PII retention policies conforming to the Digital Personal Data Protection Act (DPDP).
 
 ---
 

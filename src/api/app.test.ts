@@ -10,9 +10,12 @@ import { app } from './app';
 describe('SAMADHAN API Endpoints', () => {
   // 1. Health & Metadata
   describe('GET /api/health', () => {
-    it('should return 200 with detailed telemetry and version info', async () => {
+    it('should return 200 with detailed telemetry and security headers', async () => {
       const res = await request(app).get('/api/health');
       expect(res.status).toBe(200);
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+      expect(res.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
       expect(res.body.status).toBe('ok');
       expect(res.body.service).toBe('samadhan-api');
       expect(res.body.version).toBe('0.6.0');
@@ -294,7 +297,46 @@ describe('SAMADHAN API Endpoints', () => {
     });
   });
 
-  // 13. Undefined Route 404
+  // 13. Facility Directory Enrichment
+  describe('Facility Directory Endpoints', () => {
+    it('GET /api/facilities/search returns matching public facilities', async () => {
+      const res = await request(app).get('/api/facilities/search?q=Nancowry');
+      expect(res.status).toBe(200);
+      expect(res.body.source).toBe('facility_directory');
+      expect(res.body.results.length).toBeGreaterThan(0);
+      expect(res.body.results[0].state).toContain('Islands');
+    });
+
+    it('GET /api/facilities/search bounds limit and validates parameter length', async () => {
+      const res = await request(app).get('/api/facilities/search?limit=3');
+      expect(res.status).toBe(200);
+      expect(res.body.limit).toBe(3);
+      expect(res.body.results.length).toBeLessThanOrEqual(3);
+
+      const invalidLimit = await request(app).get('/api/facilities/search?limit=invalid');
+      expect(invalidLimit.status).toBe(400);
+      expect(invalidLimit.body.error.code).toBe('INVALID_PARAMETER');
+
+      const longQuery = 'a'.repeat(205);
+      const invalidQuery = await request(app).get(`/api/facilities/search?q=${longQuery}`);
+      expect(invalidQuery.status).toBe(400);
+      expect(invalidQuery.body.error.code).toBe('INVALID_PARAMETER');
+    });
+
+    it('GET /api/facilities/search filters by facilityType safely', async () => {
+      const res = await request(app).get('/api/facilities/search?facilityType=CHC&limit=5');
+      expect(res.status).toBe(200);
+      expect(res.body.results.every((r: any) => r.facilityType === 'CHC')).toBe(true);
+    });
+
+    it('GET /api/facilities/:id returns 404 for non-existent facility', async () => {
+      const res = await request(app).get('/api/facilities/NON_EXISTENT_FAC_9999');
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('FACILITY_NOT_FOUND');
+    });
+  });
+
+  // 14. Undefined Route 404
   describe('Undefined /api/* route', () => {
     it('should return 404 with structured error JSON', async () => {
       const res = await request(app).get('/api/non_existent_endpoint');

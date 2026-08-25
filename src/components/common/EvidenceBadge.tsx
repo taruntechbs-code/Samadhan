@@ -3,6 +3,7 @@ import { EvidenceReference } from '../../intelligence/types';
 import { ShieldCheck, ExternalLink, X, Database } from 'lucide-react';
 import { Card } from './Card';
 import { Button } from './Button';
+import { useTranslation } from '../../i18n';
 
 export interface EvidenceBadgeProps {
   evidence?: EvidenceReference | EvidenceReference[];
@@ -12,14 +13,17 @@ export interface EvidenceBadgeProps {
 
 export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
   evidence,
-  label = 'Official CPGRAMS Data',
+  label,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   if (!evidence) return null;
   const list = Array.isArray(evidence) ? evidence : [evidence];
   if (list.length === 0) return null;
+
+  const displayLabel = label || t('evidence.badgeLabel');
 
   return (
     <>
@@ -28,12 +32,12 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
         className={`chip chip-secondary ${className}`}
         style={{
           cursor: 'pointer',
-          border: 'none',
           fontSize: '0.75rem',
           display: 'inline-flex',
           alignItems: 'center',
           gap: '0.35rem',
-          padding: '0.3rem 0.65rem',
+          padding: '0.35rem 0.75rem',
+          minHeight: '32px',
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -42,7 +46,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
         title="Click to inspect official dataset source & audit evidence"
       >
         <ShieldCheck size={14} style={{ color: 'var(--md-sys-color-primary)' }} />
-        <span>{label}</span>
+        <span>{displayLabel}</span>
       </button>
 
       {isOpen && (
@@ -68,7 +72,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
             style={{
               width: '100%',
               maxWidth: '560px',
-              maxHeight: '85vh',
+              maxHeight: '88vh',
               overflowY: 'auto',
               borderRadius: 'var(--radius-dialog)',
               boxShadow: 'var(--shadow-level-3)',
@@ -78,7 +82,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
               <button
                 type="button"
                 className="btn btn-text"
-                style={{ position: 'absolute', top: '16px', right: '16px', padding: '0.4rem', minHeight: 'auto', borderRadius: '50%' }}
+                style={{ position: 'absolute', top: '14px', right: '14px', padding: '0.4rem', minHeight: 'auto', borderRadius: '50%' }}
                 onClick={() => setIsOpen(false)}
                 aria-label="Close evidence dialog"
               >
@@ -96,16 +100,17 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    flexShrink: 0,
                   }}
                 >
                   <Database size={18} />
                 </div>
                 <div>
                   <h3 className="title-medium" style={{ fontSize: '1.125rem' }}>
-                    Data Source &amp; Evidence Audit
+                    {t('evidence.modalTitle')}
                   </h3>
                   <p style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-                    Traceable lineage to DARPG verified CPGRAMS reporting rows
+                    {t('evidence.modalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -124,27 +129,27 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
                       fontSize: '0.8125rem',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Entity:</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t('evidence.entity')}</span>
                       <strong style={{ color: 'var(--md-sys-color-on-surface)' }}>{ev.entity}</strong>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Metric:</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t('evidence.metric')}</span>
                       <code>{ev.metric} = {typeof ev.value === 'number' ? ev.value.toLocaleString('en-IN') : ev.value}</code>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Reporting Period:</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t('evidence.period')}</span>
                       <span>{ev.period}</span>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Dataset:</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t('evidence.dataset')}</span>
                       <code>{ev.dataset}</code>
                     </div>
 
-                    <div style={{ marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--md-sys-color-surface-container)' }}>
+                    <div style={{ marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--md-sys-color-border-subtle)' }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', fontStyle: 'italic' }}>
                         {ev.sourceNote}
                       </div>
@@ -163,7 +168,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
                           textDecoration: 'none',
                         }}
                       >
-                        <span>Verify at official portal</span>
+                        <span>{t('evidence.verifyPortal')}</span>
                         <ExternalLink size={12} />
                       </a>
                     </div>
@@ -173,7 +178,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
                 <Button variant="filled" onClick={() => setIsOpen(false)} style={{ minHeight: '38px', padding: '0.4rem 1.25rem' }}>
-                  <span>Done</span>
+                  <span>{t('evidence.doneBtn')}</span>
                 </Button>
               </div>
             </Card>

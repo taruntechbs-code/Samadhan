@@ -16,6 +16,7 @@ import {
   TrendInsight,
   SystemMetadata,
 } from '../intelligence';
+import { searchFacilities, getFacilityById } from '../data/facilityDirectory';
 
 export const apiRouter = Router();
 
@@ -541,3 +542,82 @@ apiRouter.get('/metrics/:metric', (req: Request, res: Response) => {
     rows,
   });
 });
+
+// ==========================================
+// 4. FACILITY DIRECTORY ENRICHMENT ENDPOINTS
+// ==========================================
+
+// GET /api/facilities/search?q=...&state=...&district=...&subdistrict=...&facilityType=...&limit=...
+apiRouter.get('/facilities/search', (req: Request, res: Response) => {
+  const rawQ = req.query.q as string | undefined;
+  if (rawQ && rawQ.length > 200) {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_PARAMETER',
+        message: 'Search query parameter "q" cannot exceed 200 characters.',
+      },
+    });
+    return;
+  }
+
+  const limitParam = parseNumberQuery(req.query.limit, 1, 50);
+  if (limitParam.error) {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_PARAMETER',
+        message: `limit: ${limitParam.error}`,
+      },
+    });
+    return;
+  }
+
+  const result = searchFacilities({
+    q: rawQ,
+    state: req.query.state as string | undefined,
+    district: req.query.district as string | undefined,
+    subdistrict: req.query.subdistrict as string | undefined,
+    facilityType: req.query.facilityType as string | undefined,
+    limit: limitParam.value || 10,
+  });
+
+  res.json({
+    source: 'facility_directory',
+    sourceNote: 'National public healthcare facility directory for geographic jurisdiction resolution.',
+    total: result.total,
+    limit: result.limit,
+    results: result.results,
+  });
+});
+
+// GET /api/facilities/:id
+apiRouter.get('/facilities/:id', (req: Request, res: Response) => {
+  const rawId = req.params.id;
+  const idParam = Array.isArray(rawId) ? rawId[0] : rawId;
+
+  if (!idParam || typeof idParam !== 'string' || idParam.trim() === '') {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_PARAMETER',
+        message: 'Facility ID parameter is required.',
+      },
+    });
+    return;
+  }
+
+  const facility = getFacilityById(idParam);
+  if (!facility) {
+    res.status(404).json({
+      error: {
+        code: 'FACILITY_NOT_FOUND',
+        message: `Facility with ID '${idParam}' was not found in the directory.`,
+      },
+    });
+    return;
+  }
+
+  res.json({
+    source: 'facility_directory',
+    facility,
+  });
+});
+
