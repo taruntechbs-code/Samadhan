@@ -789,4 +789,73 @@ apiRouter.get('/municipal/pcmc', (_req: Request, res: Response) => {
   });
 });
 
+// ==========================================
+// 17. DOCUMENT EVIDENCE & RAG ENDPOINTS
+// ==========================================
+
+import {
+  ExtractedDocument,
+  aggregateMultiDocumentEvidence,
+  retrieveRelevantChunks,
+} from '../intelligence';
+
+// POST /api/evidence/analyze
+apiRouter.post('/evidence/analyze', (req: Request, res: Response) => {
+  const { queryText, documents } = req.body;
+
+  if (!documents || !Array.isArray(documents)) {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_PARAMETER',
+        message: 'Request body must include an array of documents.',
+      },
+    });
+    return;
+  }
+
+  // Validate document array constraints (max 5)
+  if (documents.length > 5) {
+    res.status(400).json({
+      error: {
+        code: 'MAX_FILES_EXCEEDED',
+        message: 'Maximum 5 evidence documents can be attached per grievance.',
+      },
+    });
+    return;
+  }
+
+  const multiEvidence = aggregateMultiDocumentEvidence(documents as ExtractedDocument[], queryText);
+  const routing = routeGrievanceText(queryText || '', multiEvidence);
+
+  res.json({
+    status: 'ok',
+    totalAnalyzed: multiEvidence.totalAnalyzed,
+    evidence: multiEvidence,
+    routing,
+  });
+});
+
+// POST /api/evidence/retrieve
+apiRouter.post('/evidence/retrieve', (req: Request, res: Response) => {
+  const { queryText, document } = req.body;
+
+  if (!queryText || typeof queryText !== 'string' || !document) {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_PARAMETER',
+        message: 'Query text and document object are required.',
+      },
+    });
+    return;
+  }
+
+  const retrieval = retrieveRelevantChunks(queryText, document as ExtractedDocument);
+
+  res.json({
+    status: 'ok',
+    retrieval,
+  });
+});
+
+
 

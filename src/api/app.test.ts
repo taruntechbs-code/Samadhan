@@ -405,7 +405,78 @@ describe('SAMADHAN API Endpoints', () => {
     });
   });
 
-  // 17. Undefined Route 404
+  // 17. Document Evidence & RAG Endpoints
+  describe('Document Evidence & RAG Endpoints', () => {
+    it('POST /api/evidence/analyze enriches routing with uploaded document', async () => {
+      const doc = {
+        id: 'doc_1',
+        originalName: 'tax_intimation.txt',
+        sanitizedName: 'tax_intimation.txt',
+        extension: '.txt',
+        sizeBytes: 250,
+        extractionStatus: 'SUCCESS',
+        extractedText: 'Income Tax Department Intimation PAN: ABCDE1234F AY 2025-26 refund delay issue.',
+        lineCount: 1,
+        wordCount: 12,
+      };
+
+      const res = await request(app)
+        .post('/api/evidence/analyze')
+        .send({ queryText: 'My refund has not arrived.', documents: [doc] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('ok');
+      expect(res.body.totalAnalyzed).toBe(1);
+      expect(res.body.routing.status).toBe('MATCHED');
+      expect(res.body.routing.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      expect(res.body.routing.matchReason).toContain('Document evidence strengthened');
+    });
+
+    it('POST /api/evidence/analyze rejects requests exceeding 5 files', async () => {
+      const docs = Array.from({ length: 6 }, (_, i) => ({
+        id: `doc_${i}`,
+        originalName: `file_${i}.txt`,
+        sanitizedName: `file_${i}.txt`,
+        extension: '.txt',
+        sizeBytes: 100,
+        extractionStatus: 'SUCCESS',
+        extractedText: 'sample',
+        lineCount: 1,
+        wordCount: 1,
+      }));
+
+      const res = await request(app)
+        .post('/api/evidence/analyze')
+        .send({ queryText: 'sample', documents: docs });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('MAX_FILES_EXCEEDED');
+    });
+
+    it('POST /api/evidence/retrieve retrieves matching chunks', async () => {
+      const doc = {
+        id: 'doc_1',
+        originalName: 'tax_intimation.txt',
+        sanitizedName: 'tax_intimation.txt',
+        extension: '.txt',
+        sizeBytes: 250,
+        extractionStatus: 'SUCCESS',
+        extractedText: 'Refund failed due to bank account validation error with SBI.',
+        lineCount: 1,
+        wordCount: 10,
+      };
+
+      const res = await request(app)
+        .post('/api/evidence/retrieve')
+        .send({ queryText: 'bank account validation failed', document: doc });
+
+      expect(res.status).toBe(200);
+      expect(res.body.retrieval.isRelevant).toBe(true);
+      expect(res.body.retrieval.matchedPassages.length).toBeGreaterThan(0);
+    });
+  });
+
+  // 18. Undefined Route 404
   describe('Undefined /api/* route', () => {
     it('should return 404 with structured error JSON', async () => {
       const res = await request(app).get('/api/non_existent_endpoint');

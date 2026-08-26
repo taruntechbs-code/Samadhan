@@ -223,29 +223,51 @@ function isVagueQuery(normalized: string): boolean {
   return vaguePhrases.some(vp => normalized.includes(vp));
 }
 
+import { aggregateMultiDocumentEvidence, MultiDocumentEvidence } from './documentIntelligence';
+import { ExtractedDocument } from './documentParser';
+
 /**
- * Routes raw citizen grievance text to candidate public authority entities.
+ * Routes raw citizen grievance text and optional attached document evidence to candidate public authorities.
  */
-export function routeGrievanceText(queryText: string): RoutingRecommendation {
-  if (!queryText || typeof queryText !== 'string' || queryText.trim() === '') {
+export function routeGrievanceText(
+  queryText: string,
+  documentInput?: ExtractedDocument[] | MultiDocumentEvidence
+): RoutingRecommendation {
+  let docEvidence: MultiDocumentEvidence | undefined = undefined;
+
+  if (documentInput) {
+    if (Array.isArray(documentInput)) {
+      docEvidence = aggregateMultiDocumentEvidence(documentInput, queryText);
+    } else {
+      docEvidence = documentInput;
+    }
+  }
+
+  // Combine query text with verified document keywords if query is short or ambiguous
+  const docKeywords = docEvidence?.hasConvergence && !docEvidence.hasContradiction ? docEvidence.extractedKeywords : [];
+  const combinedContext = queryText ? `${queryText} ${docKeywords.join(' ')}`.trim() : docKeywords.join(' ');
+
+  if (!combinedContext || combinedContext.trim() === '') {
     return {
-      queryText: '',
+      queryText: queryText || '',
       status: 'UNCATEGORIZED',
       detectedCategory: 'Unclassified',
       recommendedEntity: null,
       confidence: 0,
-      matchReason: 'No grievance query text was provided.',
-      missingInfoGuidance: 'Please enter a description of your grievance with details regarding the department, scheme, or service involved.',
+      matchReason: 'No grievance query text or document evidence was provided.',
+      missingInfoGuidance: 'Please enter a description of your grievance or attach supporting evidence.',
       alternativeCandidates: [],
       disclaimer: ROUTING_DISCLAIMER,
+      documentEvidence: docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined,
     };
   }
 
   const sanitized = queryText.slice(0, 2000);
   const normalized = sanitized.toLowerCase().trim();
+  const normalizedCombined = combinedContext.toLowerCase().trim();
 
-  // Check for deliberately vague or generic complaints
-  if (isVagueQuery(normalized)) {
+  // Check for deliberately vague or generic complaints when no helpful document evidence is present
+  if (isVagueQuery(normalized) && (!docEvidence || !docEvidence.hasConvergence || docEvidence.convergedDomain === null)) {
     return {
       queryText,
       status: 'NEEDS_REVIEW',
@@ -253,9 +275,10 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
       recommendedEntity: null,
       confidence: 0,
       matchReason: 'Grievance description contains general distress without specific department, scheme, or service identifiers.',
-      missingInfoGuidance: 'To route accurately, please specify the relevant department (e.g. EPFO, Income Tax, Railways, Health), scheme name (e.g. PM-Kisan, Ayushman Bharat), or transaction/account reference.',
+      missingInfoGuidance: 'To route accurately, please specify the relevant department (e.g. EPFO, Income Tax, Railways, Health), scheme name (e.g. PM-Kisan, Ayushman Bharat), or attach a department notice/receipt.',
       alternativeCandidates: [],
       disclaimer: ROUTING_DISCLAIMER,
+      documentEvidence: docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined,
     };
   }
 
@@ -263,12 +286,13 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
   let bestScore = 0;
   const matchScores: Array<{ rule: RoutingCategoryRule; score: number; matchedKeywords: string[] }> = [];
 
+  // Match against combined text (grievance + document context)
   for (const rule of ROUTING_RULES) {
     let ruleScore = 0;
     const matched: string[] = [];
 
     for (const kw of rule.keywords) {
-      if (matchesKeyword(normalized, kw)) {
+      if (matchesKeyword(normalizedCombined, kw)) {
         const weight = kw.includes(' ') ? 3 : 1;
         ruleScore += weight;
         matched.push(kw);
@@ -284,6 +308,9 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     }
   }
 
+  // Format document evidence summary
+  const formattedDocSummary = docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined;
+
   if (!bestMatch || bestScore === 0) {
     return {
       queryText,
@@ -291,15 +318,30 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
       detectedCategory: 'General Administrative / Uncategorized',
       recommendedEntity: null,
       confidence: 0,
-      matchReason: 'No specific departmental keywords detected in grievance text.',
-      missingInfoGuidance: 'No matching public authority was identified. Try mentioning the ministry, public service, or location.',
+      matchReason: 'No specific departmental keywords detected in grievance text or attached documents.',
+      missingInfoGuidance: 'No matching public authority was identified. Try mentioning the ministry, public service, or attaching a relevant document.',
       alternativeCandidates: [],
       disclaimer: ROUTING_DISCLAIMER,
+      documentEvidence: formattedDocSummary,
     };
   }
 
   // Calibration: Minimum 0.55 up to 0.95 based on keyword richness
-  const rawConfidence = Math.min(0.55 + bestScore * 0.12, 0.95);
+  let rawConfidence = Math.min(0.55 + bestScore * 0.12, 0.95);
+
+  // If document evidence converged and strengthened this exact match, boost confidence slightly
+  let strengthenedNote = '';
+  if (docEvidence && docEvidence.hasConvergence && docEvidence.convergedDomain) {
+    if (bestMatch.category.toLowerCase().includes(docEvidence.convergedDomain.split(' ')[0].toLowerCase()) ||
+        docEvidence.convergedDomain.toLowerCase().includes(bestMatch.category.split(' ')[0].toLowerCase())) {
+      rawConfidence = Math.min(0.96, rawConfidence + 0.15);
+      strengthenedNote = ` Document evidence strengthened the ${bestMatch.category} classification.`;
+      if (formattedDocSummary) {
+        formattedDocSummary.strengthenedCategory = bestMatch.category;
+      }
+    }
+  }
+
   const confidence = Number(rawConfidence.toFixed(2));
   const status: RoutingStatus = confidence >= 0.5 ? 'MATCHED' : 'NEEDS_REVIEW';
 
@@ -332,17 +374,42 @@ export function routeGrievanceText(queryText: string): RoutingRecommendation {
     bestMatch.category === 'Health & Family Welfare' ||
     bestMatch.category === 'Ayush & Traditional Medicine';
 
+  const facilityQuery = docEvidence?.facilityLocationQuery || (isHealthcare ? queryText : undefined);
+
   return {
     queryText,
     status,
     detectedCategory: bestMatch.category,
     recommendedEntity: bestMatch.primaryEntity,
     confidence,
-    matchReason: `Detected keywords (${matchedKwStr}) matching ${bestMatch.category}: ${bestMatch.explanation}`,
+    matchReason: `Detected keywords (${matchedKwStr}) matching ${bestMatch.category}: ${bestMatch.explanation}${strengthenedNote}`,
     alternativeCandidates: alternatives,
     disclaimer: ROUTING_DISCLAIMER,
-    facilityContextAvailable: isHealthcare,
+    facilityContextAvailable: isHealthcare || !!facilityQuery,
     facilityDomain: isHealthcare ? 'HEALTHCARE' : 'GENERAL',
-    extractedFacilityQuery: isHealthcare ? queryText : undefined,
+    extractedFacilityQuery: facilityQuery,
+    documentEvidence: formattedDocSummary,
+  };
+}
+
+import { DocumentEvidenceSummary } from './types';
+
+function formatDocEvidenceSummary(docEvidence: MultiDocumentEvidence): DocumentEvidenceSummary {
+  return {
+    totalAnalyzed: docEvidence.totalAnalyzed,
+    relevantCount: docEvidence.relevantDocumentsCount,
+    hasConvergence: docEvidence.hasConvergence,
+    hasContradiction: docEvidence.hasContradiction,
+    convergenceExplanation: docEvidence.convergenceExplanation,
+    documents: docEvidence.documentResults.map(dr => ({
+      documentId: dr.documentId,
+      documentName: dr.documentName,
+      isRelevant: dr.retrieval?.isRelevant ?? (dr.entities.confidence !== 'LOW'),
+      detectedDomain: dr.entities.domain,
+      confidence: dr.entities.confidence,
+      matchedSnippet: dr.retrieval?.matchedPassages[0]?.snippet,
+      referenceNumbers: dr.entities.referenceNumbers,
+      dates: dr.entities.dates,
+    })),
   };
 }

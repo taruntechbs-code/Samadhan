@@ -6,6 +6,43 @@ SAMADHAN is a civic-tech public grievance platform built for the **"Build What M
 
 ---
 
+## 🌐 Live Demo & Deployment
+
+* **Public Live URL**: **[https://samadhan-hszx.onrender.com](https://samadhan-hszx.onrender.com)** (Render Web Service)
+* **API Health Check**: `https://samadhan-hszx.onrender.com/api/health`
+* **Dataset Verification**: `https://samadhan-hszx.onrender.com/api/datasets`
+
+> [!NOTE]
+> **Free Tier Spin-Down**: The demo is deployed on Render's free tier and may take 30–50 seconds to spin up on initial access after periods of inactivity.
+>
+> **Prototype Disclosure**: SAMADHAN is an independent civic-tech innovation demo. Submissions generate local demo reference records and do not transmit data to official government endpoints without explicit authorization.
+
+---
+
+## 🚀 Running Locally & Production
+
+### 1. Development Mode
+```powershell
+npm install
+npm run dev
+```
+
+### 2. Production Build & Start
+```powershell
+npm ci
+npm run build
+npm start
+```
+
+### 3. Automated Verification & Tests
+```powershell
+npm test -- --run     # 142 Unit & Integration Tests (100% Passing)
+npm run test:api       # 44 API Endpoint Tests (100% Passing)
+npm run verify         # 11 CPGRAMS Real Dataset Checks (2,134 Rows Verified)
+```
+
+---
+
 ## Overview
 
 Traditional grievance redressal portals place an unreasonable cognitive burden on citizens: navigating complex ministry hierarchies, selecting jurisdictional codes, and deciphering obscure bureaucratic terminology. When citizens manage to lodge grievances, they face opaque tracking statuses, while public officials receive static aggregate tables without proactive bottleneck identification.
@@ -61,12 +98,13 @@ Evidence-backed action recommendations delivered
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                       CITIZEN CLIENT                        │
-│   Natural Language Input • Voice Mic • Status Timeline       │
+│   Assisted Intake • Voice Mic • Status Timeline • Pulse     │
 └──────────────────────────────┬──────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────┐
 │                    REACT 19 / VITE 6 UI                     │
-│    Material You (MD3) • Tonal Surfaces • Organic Backdrop   │
+│    National Civic Design System • Institutional Surfaces    │
+│    Unobtrusive Evaluator Console • Data.gov.in Provenance   │
 └──────────────────────────────┬──────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────┐

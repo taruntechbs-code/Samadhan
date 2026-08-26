@@ -156,13 +156,49 @@ export async function fetchDepartmentInsights(entityName: string): Promise<Depar
   return getDepartmentInsights(entityName, service);
 }
 
-// 7. Grievance Routing
-export async function routeGrievance(text: string): Promise<RoutingRecommendation> {
+import { ExtractedDocument, MultiDocumentEvidence, aggregateMultiDocumentEvidence } from '../intelligence';
+
+// 7. Grievance Routing (supports plain text and document evidence)
+export async function routeGrievance(
+  text: string,
+  documents?: ExtractedDocument[]
+): Promise<RoutingRecommendation> {
   try {
-    const res = await fetch(`/api/intelligence/routing?text=${encodeURIComponent(text)}`);
-    if (res.ok) return await res.json();
+    if (!documents || documents.length === 0) {
+      const res = await fetch(`/api/intelligence/routing?text=${encodeURIComponent(text)}`);
+      if (res.ok) return await res.json();
+    } else {
+      const res = await fetch('/api/evidence/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queryText: text, documents }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.routing) return data.routing;
+      }
+    }
   } catch {}
-  return routeGrievanceText(text);
+  return routeGrievanceText(text, documents);
+}
+
+// 7b. Document Evidence Analysis
+export async function analyzeEvidenceDocuments(
+  documents: ExtractedDocument[],
+  queryText?: string
+): Promise<MultiDocumentEvidence> {
+  try {
+    const res = await fetch('/api/evidence/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ queryText, documents }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.evidence;
+    }
+  } catch {}
+  return aggregateMultiDocumentEvidence(documents, queryText);
 }
 
 // 8. Appeals Overview

@@ -105,6 +105,27 @@ export interface CandidateEntityMatch {
 
 export type RoutingStatus = 'MATCHED' | 'NEEDS_REVIEW' | 'UNCATEGORIZED';
 
+export interface DocumentEvidenceItem {
+  documentId: string;
+  documentName: string;
+  isRelevant: boolean;
+  detectedDomain: string;
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  matchedSnippet?: string;
+  referenceNumbers?: string[];
+  dates?: string[];
+}
+
+export interface DocumentEvidenceSummary {
+  totalAnalyzed: number;
+  relevantCount: number;
+  hasConvergence: boolean;
+  hasContradiction: boolean;
+  convergenceExplanation: string;
+  documents: DocumentEvidenceItem[];
+  strengthenedCategory?: string;
+}
+
 export interface RoutingRecommendation {
   queryText: string;
   status: RoutingStatus;
@@ -118,6 +139,7 @@ export interface RoutingRecommendation {
   facilityContextAvailable?: boolean;
   facilityDomain?: 'HEALTHCARE' | 'GENERAL';
   extractedFacilityQuery?: string;
+  documentEvidence?: DocumentEvidenceSummary;
 }
 
 export interface SystemMetadata {

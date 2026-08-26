@@ -1,0 +1,17 @@
+# SAMADHAN — Render Blueprint Specification
+# Deploys a unified Node.js Web Service serving both Vite Frontend and Express Intelligence API
+services:
+  - type: web
+    name: samadhan
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
