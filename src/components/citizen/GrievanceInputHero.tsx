@@ -6,6 +6,7 @@ import { RoutingRecommendation } from '../../intelligence/types';
 import { useTranslation } from '../../i18n';
 import { FacilityContextCard } from './FacilityContextCard';
 import { EvidenceViewerModal } from './EvidenceViewerModal';
+import { ClarificationModal } from './ClarificationModal';
 import { getSpeechProvider, SpeechRecognitionProvider } from '../../services/speechService';
 import { parseDocument, validateFile, ExtractedDocument, MAX_FILES_ALLOWED } from '../../intelligence';
 import {
@@ -23,9 +24,7 @@ import {
   FileText,
   X,
   Eye,
-  FileCheck,
   CheckCircle2,
-  MapPin,
 } from 'lucide-react';
 
 interface GrievanceInputHeroProps {
@@ -51,8 +50,8 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   const [isRouting, setIsRouting] = useState(false);
   const [routingResult, setRoutingResult] = useState<RoutingRecommendation | null>(null);
   const [routingError, setRoutingError] = useState<string | null>(null);
+  const [isClarificationOpen, setIsClarificationOpen] = useState(false);
   const [progressStep] = useState(4);
-  const [locationInput, setLocationInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const speechProviderRef = useRef<SpeechRecognitionProvider | null>(null);
@@ -122,6 +121,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       setRoutingResult(result);
       setIsRouting(false);
 
+      if (result.outcomeKind === 'NEEDS_INFORMATION') {
+        setIsClarificationOpen(true);
+      } else {
+        setIsClarificationOpen(false);
+      }
+
       if ((import.meta as any).env?.DEV) {
         console.log('[ANALYZE COMPLETE] Routing finished successfully');
       }
@@ -131,16 +136,14 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       }
       setRoutingError(err?.message || 'Routing analysis failed. Please try again.');
       setIsRouting(false);
+      setIsClarificationOpen(false);
     }
   };
 
-  const handleAppendLocation = (loc: string) => {
-    if (!loc.trim()) return;
-    const base = text.trim();
-    const updated = base ? `${base} in ${loc.trim()}` : `Grievance in ${loc.trim()}`;
-    setText(updated);
-    setLocationInput('');
-    handleAnalyze(updated);
+  const handleResolveClarification = (enrichedQuery: string) => {
+    setText(enrichedQuery);
+    setIsClarificationOpen(false);
+    handleAnalyze(enrichedQuery);
   };
 
   // ==========================================
@@ -360,7 +363,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               style={{
                 width: '100%',
                 backgroundColor: '#FFFFFF',
-                borderRadius: 'var(--radius-lg)',
+                borderRadius: '18px',
                 border: isListening ? '1.5px solid var(--civic-danger)' : '1.5px solid var(--civic-border-medium)',
                 boxShadow: 'var(--shadow-xs)',
                 display: 'flex',
@@ -775,7 +778,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       )}
 
       {/* Prominent High-Visibility Routing Result (ROUTED) */}
-      {!isRouting && !routingError && routingResult && (routingResult.outcomeKind === 'ROUTED' || !!routingResult.recommendedEntity) && (
+      {!isRouting && !routingError && routingResult && routingResult.outcomeKind === 'ROUTED' && (
         <div
           id="routing-result-section"
           className="card-surface"
@@ -807,7 +810,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 }}
               >
                 {routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL'
-                  ? (language === 'hi' ? 'स्थानीय नगर निकाय (ULB)' : 'Local Municipal Authority')
+                  ? (language === 'hi' ? 'स्थानीय नगर निकाय' : 'Local Urban Local Body (ULB)')
                   : routingResult.jurisdictionLevel === 'STATE_GOVERNMENT'
                   ? (language === 'hi' ? 'राज्य सरकार' : 'State Government')
                   : (language === 'hi' ? 'केंद्रीय मंत्रालय / विभाग' : 'Central Ministry / Department')}
@@ -836,113 +839,103 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  width: '48px',
-                  height: '48px',
+                  width: '46px',
+                  height: '46px',
                   borderRadius: '12px',
-                  backgroundColor: 'var(--civic-brand-light)',
-                  color: 'var(--civic-brand-dark)',
+                  backgroundColor: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? '#EEF2FF' : 'var(--civic-brand-light)',
+                  color: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? '#3730A3' : 'var(--civic-brand)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  border: '1px solid var(--civic-brand-border)',
                 }}
               >
-                {routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? <Landmark size={24} /> : <Building2 size={24} />}
+                {routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? <Building2 size={24} /> : <Landmark size={24} />}
               </div>
 
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {language === 'hi' ? 'पहचाना गया मुद्दा / श्रेणी' : 'Detected Category'}: <strong style={{ color: 'var(--civic-text-primary)' }}>{routingResult.detectedCategory}</strong>
-                </div>
-
-                <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', marginTop: '0.25rem', fontSize: 'clamp(1.15rem, 3.5vw, 1.5rem)', wordBreak: 'break-word' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {routingResult.detectedCategory}
+                </span>
+                <h3 className="title-large" style={{ color: 'var(--civic-text-primary)', margin: '0.2rem 0 0 0', fontWeight: 800, fontSize: '1.25rem', wordBreak: 'break-word' }}>
                   {routingResult.recommendedEntity}
-                </h2>
+                </h3>
               </div>
             </div>
 
+            {/* Lodge CTA Button */}
             <Button
               variant="filled"
-              style={{ minHeight: '46px', padding: '0.65rem 1.4rem', width: 'auto', fontWeight: 700 }}
+              className="btn btn-filled"
+              style={{
+                minHeight: '46px',
+                padding: '0.65rem 1.4rem',
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
               onClick={() => onOpenSubmitModal(routingResult, text)}
             >
-              <span>{language === 'hi' ? 'इस विभाग में शिकायत दर्ज करें' : 'Lodge Grievance to this Authority'}</span>
-              <ArrowRight size={18} />
+              <span>{language === 'hi' ? 'इस प्राधिकरण में शिकायत दर्ज करें' : 'Lodge Grievance to this Authority'}</span>
+              <ArrowRight size={17} />
             </Button>
           </div>
 
-          {/* Why this authority? Structured Deterministic Explanations */}
-          <div style={{ backgroundColor: 'var(--civic-canvas-subtle)', borderRadius: 'var(--radius-md)', padding: '1rem 1.25rem', border: '1px solid var(--civic-border-light)' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {language === 'hi' ? 'इस प्राधिकरण की सिफारिश क्यों की गई?' : 'Why this Authority?'}
-            </span>
-            <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.84rem', color: 'var(--civic-text-primary)', lineHeight: 1.5 }}>
-              {routingResult.explanations && routingResult.explanations.length > 0 ? (
-                routingResult.explanations.map((exp, i) => <li key={i}>{exp}</li>)
-              ) : (
-                <li>{routingResult.matchReason}</li>
-              )}
-            </ul>
-          </div>
+          {/* Explainability Section */}
+          {routingResult.explanations && routingResult.explanations.length > 0 && (
+            <div style={{ padding: '0.875rem 1rem', backgroundColor: 'var(--civic-canvas-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--civic-border-light)' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.4rem' }}>
+                {language === 'hi' ? 'प्राधिकरण निर्धारण के मुख्य कारण:' : 'Why this authority was selected:'}
+              </span>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8125rem', color: 'var(--civic-text-secondary)' }}>
+                {routingResult.explanations.map((exp, i) => (
+                  <li key={i}>{exp}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          {/* Document Evidence Section */}
-          {routingResult.documentEvidence && routingResult.documentEvidence.totalAnalyzed > 0 && (
+          {/* Document Convergence Banner */}
+          {routingResult.documentEvidence && routingResult.documentEvidence.relevantCount > 0 && (
             <div
               style={{
-                backgroundColor: 'var(--civic-canvas-subtle)',
+                padding: '0.75rem 1rem',
+                backgroundColor: 'var(--civic-success-bg)',
+                border: '1px solid var(--civic-success-border)',
                 borderRadius: 'var(--radius-md)',
-                padding: '1rem 1.25rem',
-                border: '1px solid var(--civic-border-light)',
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
                 gap: '0.5rem',
+                fontSize: '0.8125rem',
+                color: 'var(--civic-success-text)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-brand)' }}>
-                  <FileCheck size={16} />
-                  <span>
-                    {language === 'hi' ? 'संलग्न दस्तावेज़ साक्ष्य' : 'DOCUMENT EVIDENCE'} ({routingResult.documentEvidence.totalAnalyzed} {language === 'hi' ? 'फ़ाइलें विश्लेषित' : 'file(s) analyzed'})
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn btn-tonal"
-                  style={{ minHeight: '30px', padding: '0.2rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF' }}
-                  onClick={() => setIsEvidenceModalOpen(true)}
-                >
-                  <Eye size={13} />
-                  <span>{language === 'hi' ? 'साक्ष्य विवरण देखें' : 'View Evidence'}</span>
-                </button>
-              </div>
-
-              <div style={{ fontSize: '0.8125rem', color: 'var(--civic-text-secondary)', lineHeight: 1.45 }}>
+              <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+              <span>
+                <strong>{language === 'hi' ? 'साक्ष्य अभिसरण:' : 'Evidence Convergence:'}</strong>{' '}
                 {routingResult.documentEvidence.convergenceExplanation}
-              </div>
-
-              {routingResult.documentEvidence.documents[0]?.matchedSnippet && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontStyle: 'italic', backgroundColor: '#FFFFFF', padding: '0.4rem 0.65rem', borderRadius: '6px', border: '1px solid var(--civic-border-light)' }}>
-                  &ldquo;{routingResult.documentEvidence.documents[0].matchedSnippet}&rdquo;
-                </div>
-              )}
+              </span>
             </div>
           )}
 
           {/* Alternative Candidates */}
-          {routingResult.alternativeCandidates.length > 0 && (
-            <div style={{ paddingTop: '0.75rem', borderTop: '1px solid var(--civic-border-light)' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {language === 'hi' ? 'वैकल्पिक प्राधिकरण विकल्प:' : 'Alternative Authority Candidates:'}
+          {routingResult.alternativeCandidates && routingResult.alternativeCandidates.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600 }}>
+                {language === 'hi' ? 'संबंधित प्राधिकरण:' : 'Alternative entities:'}
               </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-                {routingResult.alternativeCandidates.map((alt, idx) => (
+              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                {routingResult.alternativeCandidates.map(alt => (
                   <span
-                    key={idx}
-                    className="chip chip-secondary"
-                    style={{ fontSize: '0.8125rem', padding: '0.35rem 0.75rem' }}
+                    key={alt.entity}
+                    className="chip chip-tonal"
+                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem' }}
+                    title={`${Math.round(alt.confidence * 100)}% match: ${alt.reason}`}
                   >
-                    {alt.entity} ({Math.round(alt.confidence * 100)}%)
+                    {alt.entity}
                   </span>
                 ))}
               </div>
@@ -964,186 +957,14 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         </div>
       )}
 
-      {/* Ambiguous / Needs Information / Location Required Card (NEEDS_INFORMATION) */}
-      {!isRouting && !routingError && routingResult && (routingResult.outcomeKind === 'NEEDS_INFORMATION' || !routingResult.recommendedEntity) && (
-        <div
-          id="routing-needs-info-section"
-          className="card-surface"
-          aria-live="polite"
-          style={{
-            border: '1.5px solid var(--civic-warning-border)',
-            background: 'var(--civic-warning-bg)',
-            padding: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '10px',
-                backgroundColor: '#FFFFFF',
-                color: 'var(--civic-warning-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                border: '1px solid var(--civic-warning-border)',
-              }}
-            >
-              {routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION' ? <MapPin size={22} /> : <AlertCircle size={22} />}
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-                <span className="chip chip-medium" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-                  {routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION'
-                    ? (language === 'hi' ? 'स्थान का विवरण आवश्यक' : 'Location Required')
-                    : (language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS INFORMATION)' : 'Needs More Information (NEEDS INFORMATION)')}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--civic-warning-text)', fontWeight: 600 }}>
-                  {language === 'hi' ? 'जिम्मेदार एआई वर्गीकरण • शून्य बनावटी अनुमान' : 'Responsible AI Triage • Zero False Guessing'}
-                </span>
-              </div>
-
-              <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', fontSize: '1.15rem' }}>
-                {routingResult.clarification?.question
-                  ? routingResult.clarification.question
-                  : routingResult.needsLocation
-                  ? (language === 'hi' ? 'यह शिकायत किस शहर या नगर पालिका की है?' : 'Which city or municipality is this in?')
-                  : (language === 'hi' ? 'शिकायत में विशिष्ट विभाग या सेवा का विवरण नहीं मिला' : 'Grievance Lacks Specific Departmental Identifiers')}
-              </h2>
-
-              <p style={{ fontSize: '0.875rem', color: 'var(--civic-text-secondary)', marginTop: '0.35rem', lineHeight: 1.5 }}>
-                {routingResult.clarification?.reason || routingResult.missingInfoGuidance || routingResult.matchReason}
-              </p>
-
-              {/* Explanations bullet points */}
-              {routingResult.explanations && routingResult.explanations.length > 0 && (
-                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8125rem', color: 'var(--civic-text-secondary)' }}>
-                  {routingResult.explanations.map((exp, i) => <li key={i}>{exp}</li>)}
-                </ul>
-              )}
-
-              {/* Interactive Clarification Option Cards */}
-              {routingResult.clarification?.options && routingResult.clarification.options.length > 0 && (
-                <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {language === 'hi' ? 'प्रासंगिक श्रेणी या पोर्टल चुनें:' : 'Select Relevant Service or Portal:'}
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
-                    {routingResult.clarification.options.map((opt, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        className="btn btn-tonal"
-                        style={{
-                          minHeight: '44px',
-                          padding: '0.5rem 0.85rem',
-                          fontSize: '0.8125rem',
-                          fontWeight: 600,
-                          backgroundColor: '#FFFFFF',
-                          border: '1px solid var(--civic-border-medium)',
-                          borderRadius: 'var(--radius-md)',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-start',
-                          color: 'var(--civic-text-primary)',
-                        }}
-                        onClick={() => {
-                          const updated = `${text.trim()} (${opt.querySuffix})`;
-                          setText(updated);
-                          handleAnalyze(updated);
-                        }}
-                      >
-                        <span style={{ color: 'var(--civic-brand)', marginRight: '0.4rem', fontWeight: 800 }}>→</span>
-                        <span>{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Location prompt input and chips when needsLocation */}
-              {(routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION') && (
-                <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <input
-                      type="text"
-                      className="input-filled"
-                      style={{ flex: '1 1 200px', minHeight: '44px', padding: '0.4rem 0.85rem', fontSize: '0.875rem', backgroundColor: '#FFFFFF' }}
-                      placeholder={language === 'hi' ? 'उदा. कुरनूल, आंध्र प्रदेश या पिंपरी चिंचवड' : 'e.g. Kurnool, Andhra Pradesh or Pune'}
-                      value={locationInput}
-                      onChange={e => setLocationInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && locationInput.trim()) {
-                          e.preventDefault();
-                          handleAppendLocation(locationInput);
-                        }
-                      }}
-                    />
-                    <Button
-                      variant="filled"
-                      style={{ minHeight: '44px', padding: '0.4rem 1.25rem', fontSize: '0.8125rem', fontWeight: 700 }}
-                      onClick={() => handleAppendLocation(locationInput)}
-                      disabled={!locationInput.trim()}
-                    >
-                      <span>{language === 'hi' ? 'स्थान जोड़ें एवं पुनः विश्लेषण करें' : 'Add Location & Re-analyze'}</span>
-                    </Button>
-                  </div>
-
-                  {(routingResult.suggestedLocations || routingResult.clarification?.suggestedLocations) && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--civic-text-muted)' }}>
-                        {language === 'hi' ? 'त्वरित शहर चुनें:' : 'Quick locations:'}
-                      </span>
-                      {(routingResult.suggestedLocations || routingResult.clarification?.suggestedLocations || []).map(loc => (
-                        <button
-                          key={loc}
-                          type="button"
-                          className="btn btn-tonal"
-                          style={{ minHeight: '36px', padding: '0.3rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
-                          onClick={() => handleAppendLocation(loc)}
-                        >
-                          + {loc}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Domain suggestion chips for general ambiguity without explicit options */}
-              {!routingResult.needsLocation && !routingResult.clarification?.options && (
-                <div style={{ marginTop: '0.875rem', display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)' }}>
-                    {language === 'hi' ? 'सुझाए गए विषय जोड़ें:' : 'Add specific domain keyword:'}
-                  </span>
-                  {['EPFO / Pension', 'Income Tax / Refund', 'Health / Hospital', 'Railways / IRCTC', 'Electricity / Power', 'Passport'].map(sug => (
-                    <button
-                      key={sug}
-                      type="button"
-                      className="btn btn-tonal"
-                      style={{ minHeight: '36px', padding: '0.3rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
-                      onClick={() => {
-                        const updated = text ? `${text} (${sug})` : sug;
-                        setText(updated);
-                        handleAnalyze(updated);
-                      }}
-                    >
-                      + {sug}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Dedicated Clarification Modal (NEEDS_INFORMATION) */}
+      <ClarificationModal
+        isOpen={isClarificationOpen && !isRouting && !routingError && routingResult?.outcomeKind === 'NEEDS_INFORMATION'}
+        onClose={() => setIsClarificationOpen(false)}
+        clarification={routingResult?.clarification}
+        grievanceText={text}
+        onResolve={handleResolveClarification}
+      />
 
       {/* Global Evidence Viewer Modal */}
       <EvidenceViewerModal

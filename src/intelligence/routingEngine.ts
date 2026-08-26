@@ -220,20 +220,32 @@ function matchesKeyword(text: string, keyword: string): boolean {
  * Detects whether query text refers to ambiguous document processing without ministry/service specifics.
  */
 function isDocumentProcessingAmbiguity(normalized: string): boolean {
-  return /documents? (?:have )?not (?:been )?processed|documents? pending|documents? not verified|documents? rejected without reason|dastavej process|दस्तावेज प्रोसेस/i.test(normalized);
+  const hasAmbiguity = /documents? (?:have )?not (?:been )?processed|documents? pending|documents? not verified|documents? rejected without reason|dastavej process|दस्तावेज प्रोसेस/i.test(normalized);
+  if (!hasAmbiguity) return false;
+  // If enriched with specific domain keyword, it is resolved
+  const hasSpecificDomain = /income tax|pan card|epfo|provident fund|pf transfer|passport|aadhaar|ayushman|railway|irctc|revenue|land|bank|pension/i.test(normalized);
+  return !hasSpecificDomain;
 }
 
 /**
  * Detects whether query text refers to generic government website/portal issues without naming the service.
  */
 function isWebsitePortalAmbiguity(normalized: string): boolean {
-  return /problem with (?:the )?government website|government website problem|government portal problem|problem with website|website not working|portal not working|portal login problem|portal error|सरकारी वेबसाइट काम नहीं कर रही|वेबसाइट में समस्या/i.test(normalized);
+  const hasAmbiguity = /problem with (?:the )?government website|government website problem|government portal problem|problem with website|website not working|portal not working|portal login problem|portal error|सरकारी वेबसाइट काम नहीं कर रही|वेबसाइट में समस्या/i.test(normalized);
+  if (!hasAmbiguity) return false;
+  // If enriched with specific service/portal keyword, it is resolved
+  const hasSpecificDomain = /income tax|e-filing|epfo|uan|passport|irctc|railway|pm-kisan|kisan|health|hospital/i.test(normalized);
+  return !hasSpecificDomain;
 }
 
 /**
  * Detects whether query text is deliberately vague or ambiguous without actionable specifics.
  */
 function isVagueQuery(normalized: string): boolean {
+  // If enriched with specific statutory or service domain keywords, it is not vague
+  const hasSpecificDomain = /income tax|tax|itr|e-filing|epfo|provident fund|uan|passport|aadhaar|railway|train|irctc|pm-kisan|hospital|ayushman|bank|atm|sanitation|garbage|kurnool|pcmc/i.test(normalized);
+  if (hasSpecificDomain) return false;
+
   const vaguePhrases = [
     'i have a problem with a government service and nobody is helping me',
     'i have a problem with a government service',

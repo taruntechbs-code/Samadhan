@@ -373,5 +373,62 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
         expect(rec.clarification?.options?.length).toBeGreaterThanOrEqual(4);
       });
     });
+
+    // Phase 14.6 Clarification Modal & Query Re-analysis Integration Suite
+    describe('Phase 14.6 Clarification Modal & Query Re-analysis Suite', () => {
+      it('1. ROUTED query (ATM debit) produces ROUTED outcome without clarification required', () => {
+        const rec = routeGrievanceText('Cash debited from ATM but bank machine failed to dispense money');
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.recommendedEntity).toBe('Financial Services (Banking Division)');
+      });
+
+      it('2. Ambiguous sanitation query produces NEEDS_INFORMATION with LOCATION clarification', () => {
+        const rec = routeGrievanceText('Garbage has not been collected in my area.');
+        expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+        expect(rec.recommendedEntity).toBeNull();
+        expect(rec.clarification?.type).toBe('LOCATION');
+        expect(rec.clarification?.question).toContain('city or municipality');
+        expect(rec.clarification?.suggestedLocations).toContain('Kurnool, Andhra Pradesh');
+      });
+
+      it('3. Enriching sanitation query with Kurnool, AP re-routes directly to Local Municipal Authority', () => {
+        const enriched = 'Garbage has not been collected in my area. Location: Kurnool, Andhra Pradesh.';
+        const rec = routeGrievanceText(enriched);
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.status).toBe('MATCHED');
+        expect(rec.recommendedEntity).toBe('Local Municipal Authority (Kurnool, Andhra Pradesh)');
+        expect(rec.jurisdictionLevel).toBe('LOCAL_MUNICIPAL');
+      });
+
+      it('4. Ambiguous documents query produces NEEDS_INFORMATION with DOCUMENT_TYPE clarification', () => {
+        const rec = routeGrievanceText('My documents have not been processed.');
+        expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+        expect(rec.recommendedEntity).toBeNull();
+        expect(rec.clarification?.type).toBe('DOCUMENT_TYPE');
+        expect(rec.clarification?.options?.some(o => o.label.includes('Income Tax'))).toBe(true);
+      });
+
+      it('5. Selecting Income Tax / PAN Card re-routes directly to Central Board of Direct Taxes', () => {
+        const enriched = 'My documents have not been processed (Income Tax PAN card document processing)';
+        const rec = routeGrievanceText(enriched);
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      });
+
+      it('6. Ambiguous website query produces NEEDS_INFORMATION with SERVICE_DOMAIN clarification', () => {
+        const rec = routeGrievanceText('I have a problem with the government website.');
+        expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+        expect(rec.recommendedEntity).toBeNull();
+        expect(rec.clarification?.type).toBe('SERVICE_DOMAIN');
+        expect(rec.clarification?.options?.some(o => o.label.includes('Income Tax e-Filing'))).toBe(true);
+      });
+
+      it('7. Selecting Income Tax e-Filing Portal re-routes directly to Central Board of Direct Taxes', () => {
+        const enriched = 'I have a problem with the government website (Income Tax e-Filing portal issue)';
+        const rec = routeGrievanceText(enriched);
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      });
+    });
   });
 });

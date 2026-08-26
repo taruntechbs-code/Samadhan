@@ -789,7 +789,7 @@ html, body {
 .grievance-composer {
   width: 100%;
   background-color: #FFFFFF;
-  border-radius: var(--radius-lg);
+  border-radius: 18px;
   border: 1.5px solid var(--civic-border-medium);
   box-shadow: var(--shadow-xs);
   display: flex;
@@ -816,6 +816,8 @@ html, body {
   font-family: inherit;
   color: var(--civic-text-primary);
   box-sizing: border-box;
+  border-top-left-radius: 16.5px;
+  border-top-right-radius: 16.5px;
 }
 
 @media (max-width: 600px) {
@@ -834,6 +836,8 @@ html, body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
+  border-bottom-left-radius: 16.5px;
+  border-bottom-right-radius: 16.5px;
 }
 
 .composer-analyze-cta {
