@@ -487,23 +487,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   )}
                 </div>
 
-                {/* Primary Unmissable Analyze CTA Button */}
+                {/* Primary Analyze CTA Button */}
                 <Button
                   id="btn-find-authority"
                   type="button"
                   variant="filled"
                   className="composer-analyze-cta"
-                  style={{
-                    minHeight: '44px',
-                    padding: '0.55rem 1.4rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
                   disabled={isRouting || (!text.trim() && attachedDocs.length === 0)}
                   onClick={() => {
                     if ((import.meta as any).env?.DEV) {

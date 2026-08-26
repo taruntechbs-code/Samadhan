@@ -103,6 +103,7 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+  --radius-btn: 10px;
   --radius-pill: 9999px;
   --radius-hero: 16px;
   --radius-card: 12px;
@@ -841,27 +842,35 @@ html, body {
 }
 
 .composer-analyze-cta {
-  min-height: 44px;
-  padding: 0.55rem 1.4rem;
+  min-height: 42px;
+  padding: 0.55rem 1.35rem;
   font-size: 0.875rem;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
   background-color: var(--civic-brand);
   color: #FFFFFF;
-  border-radius: var(--radius-btn);
+  border: 1px solid var(--civic-brand);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
+.composer-analyze-cta:hover:not(:disabled) {
+  background-color: var(--civic-brand-hover);
+  border-color: var(--civic-brand-hover);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
 .composer-analyze-cta:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
-  background-color: var(--civic-border-medium);
+  background-color: #E2E8F0;
+  border: 1px solid var(--civic-border-medium);
   color: var(--civic-text-muted);
   box-shadow: none;
 }
