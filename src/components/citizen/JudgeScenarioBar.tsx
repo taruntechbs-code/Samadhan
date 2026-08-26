@@ -43,6 +43,17 @@ export const JudgeScenarioBar: React.FC<JudgeScenarioBarProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    if (!showModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
+
   const SCENARIOS = [
     {
       id: 'epfo',

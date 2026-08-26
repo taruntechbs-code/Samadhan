@@ -19,7 +19,16 @@ export const TransparencyModal: React.FC<TransparencyModalProps> = ({ isOpen, on
     if (isOpen && !meta) {
       fetchSystemMetadata().then(setMeta).catch(console.error);
     }
-  }, [isOpen, meta]);
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, meta, onClose]);
 
   if (!isOpen) return null;
 

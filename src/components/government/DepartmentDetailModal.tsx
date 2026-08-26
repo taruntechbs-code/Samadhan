@@ -29,6 +29,13 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
   useEffect(() => {
     if (!entityName) return;
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     setLoading(true);
     Promise.all([
       fetchDepartmentInsights(entityName),
@@ -42,7 +49,11 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [entityName]);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [entityName, onClose]);
 
   if (!entityName) return null;
 

@@ -41,7 +41,16 @@ export const EvidenceViewerModal: React.FC<EvidenceViewerModalProps> = ({
     if (documents.length > 0 && (!selectedDocId || !documents.some(d => d.id === selectedDocId))) {
       setSelectedDocId(documents[0].id);
     }
-  }, [documents, selectedDocId]);
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [documents, selectedDocId, isOpen, onClose]);
 
   if (!isOpen || documents.length === 0) return null;
 

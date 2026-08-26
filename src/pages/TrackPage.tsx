@@ -4,7 +4,7 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { EvidenceBadge } from '../components/common/EvidenceBadge';
 import { GrievanceTimeline } from '../components/citizen/GrievanceTimeline';
-import { getGrievanceByRef, getStoredCitizenGrievances, CitizenGrievanceRecord } from '../../src/services/apiClient';
+import { getGrievanceByRef, getStoredCitizenGrievances, CitizenGrievanceRecord } from '../services/apiClient';
 import { useTranslation } from '../i18n';
 import {
   Search,
