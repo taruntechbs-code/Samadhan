@@ -83,8 +83,8 @@ const ROUTING_RULES: RoutingCategoryRule[] = [
     category: 'Labour, EPFO & Pensions',
     keywords: [
       'epfo', 'provident fund', 'pension', 'gratuity', 'salary', 'unpaid wage', 'labour welfare',
-      'esic', 'workplace dispute', 'uan number', 'pf transfer', 'retirement benefit', 'pf balance',
-      'ईपीएफओ', 'पेंशन', 'भविष्य निधि', 'वेतन', 'ईएसआईसी', 'ग्रेच्युटी', 'यूएएन'
+      'esic', 'workplace dispute', 'uan number', 'pf transfer', 'retirement benefit', 'pf balance', 'pf',
+      'ईपीएफओ', 'पेंशन', 'भविष्य निधि', 'वेतन', 'ईएसआईसी', 'ग्रेच्युटी', 'यूएएन', 'पीएफ', 'पीएफ बैलेंस', 'पीएफ खाता'
     ],
     primaryEntity: 'Labour and Employment',
     alternatives: ['Personnel, Public Grievances and Pensions', 'Financial Services (Banking Division)'],

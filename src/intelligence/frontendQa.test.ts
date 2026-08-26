@@ -297,5 +297,32 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
       expect(rec.needsLocation).toBe(true);
       expect(rec.clarification?.type).toBe('LOCATION');
     });
+
+    // Invariant: Terminal Resolution for all key queries
+    it('guarantees immediate terminal resolution (ROUTED or NEEDS_INFORMATION) for all benchmark queries', async () => {
+      const testQueries = [
+        { q: 'Cash debited from ATM but bank machine failed to dispense money', expected: 'ROUTED' },
+        { q: 'My income tax refund has not been credited to my bank account for six months despite e-filing.', expected: 'ROUTED' },
+        { q: 'My PF balance has not been updated.', expected: 'ROUTED' },
+        { q: 'Garbage has not been collected in my area.', expected: 'NEEDS_INFORMATION' },
+        { q: 'Garbage has not been collected for 7 days in Kurnool, Andhra Pradesh, and waste is accumulating near my street.', expected: 'ROUTED' },
+        { q: 'My documents have not been processed.', expected: 'NEEDS_INFORMATION' },
+        { q: 'I have a problem with the government website.', expected: 'NEEDS_INFORMATION' },
+        { q: 'मेरा PF बैलेंस अभी तक अपडेट नहीं हुआ है।', expected: 'ROUTED' },
+      ];
+
+      for (const t of testQueries) {
+        const rec = routeGrievanceText(t.q);
+        expect(rec).toBeDefined();
+        expect(rec.outcomeKind).toBe(t.expected);
+        expect(['ROUTED', 'NEEDS_INFORMATION', 'ERROR']).toContain(rec.outcomeKind);
+        if (rec.outcomeKind === 'ROUTED') {
+          expect(rec.recommendedEntity).toBeTruthy();
+        } else if (rec.outcomeKind === 'NEEDS_INFORMATION') {
+          expect(rec.recommendedEntity).toBeNull();
+          expect(rec.clarification).toBeDefined();
+        }
+      }
+    });
   });
 });

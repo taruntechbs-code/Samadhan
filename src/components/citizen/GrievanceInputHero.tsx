@@ -103,25 +103,53 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
     const queryToAnalyze = (overrideText !== undefined ? overrideText : text).trim();
     if (!queryToAnalyze && attachedDocs.length === 0) return;
 
+    if ((import.meta as any).env?.DEV) {
+      console.log('[ANALYSIS START]', queryToAnalyze);
+    }
+
     setIsRouting(true);
     setRoutingError(null);
     setProgressStep(1);
 
-    const stepTimer1 = setTimeout(() => setProgressStep(2), 100);
-    const stepTimer2 = setTimeout(() => setProgressStep(3), 220);
-    const stepTimer3 = setTimeout(() => setProgressStep(4), 340);
+    const stepTimer1 = setTimeout(() => setProgressStep(2), 80);
+    const stepTimer2 = setTimeout(() => setProgressStep(3), 180);
+    const stepTimer3 = setTimeout(() => setProgressStep(4), 280);
 
     try {
-      const result = await routeGrievance(queryToAnalyze, attachedDocs);
+      if ((import.meta as any).env?.DEV) {
+        console.log('[ROUTING INVOKED]');
+      }
+
+      // Smooth visual progression with guaranteed resolution
+      const [result] = await Promise.all([
+        routeGrievance(queryToAnalyze, attachedDocs),
+        new Promise(resolve => setTimeout(resolve, 320)),
+      ]);
+
+      if ((import.meta as any).env?.DEV) {
+        console.log('[ROUTING RETURNED]', result);
+        console.log('[ROUTING OUTCOME]', result?.outcomeKind);
+      }
+
       setRoutingResult(result);
+
+      if ((import.meta as any).env?.DEV) {
+        console.log('[STATE UPDATE] routingResult updated');
+      }
     } catch (err: any) {
-      console.error('Routing analysis error:', err);
+      if ((import.meta as any).env?.DEV) {
+        console.error('[ANALYSIS ERROR]', err);
+      }
       setRoutingError(err.message || 'Routing analysis failed. Please try again.');
     } finally {
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);
       clearTimeout(stepTimer3);
       setIsRouting(false);
+
+      if ((import.meta as any).env?.DEV) {
+        console.log('[ANALYSIS COMPLETE] isRouting set to false');
+      }
     }
   };
 
@@ -760,8 +788,8 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         </div>
       )}
 
-      {/* Prominent High-Visibility Routing Result */}
-      {routingResult && routingResult.recommendedEntity && !isRouting && (
+      {/* Prominent High-Visibility Routing Result (ROUTED) */}
+      {!isRouting && !routingError && routingResult && (routingResult.outcomeKind === 'ROUTED' || !!routingResult.recommendedEntity) && (
         <div
           id="routing-result-section"
           className="card-surface"
@@ -806,7 +834,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             <EvidenceBadge
               evidence={{
                 dataset: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? 'pcmc_municipal_case_study' : 'live_dashboard_2026',
-                entity: routingResult.recommendedEntity,
+                entity: routingResult.recommendedEntity || 'Public Authority',
                 metric: 'target_authority_mapping',
                 value: routingResult.detectedCategory,
                 period: '2026-01-01 to 2026-08-24',
@@ -950,8 +978,8 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         </div>
       )}
 
-      {/* Ambiguous / Needs Information / Location Required Card (Responsible AI Triage) */}
-      {routingResult && !routingResult.recommendedEntity && !isRouting && (
+      {/* Ambiguous / Needs Information / Location Required Card (NEEDS_INFORMATION) */}
+      {!isRouting && !routingError && routingResult && (routingResult.outcomeKind === 'NEEDS_INFORMATION' || !routingResult.recommendedEntity) && (
         <div
           id="routing-needs-info-section"
           className="card-surface"
