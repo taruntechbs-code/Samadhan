@@ -28,6 +28,9 @@ import {
   routeGrievanceText,
   calculateDepartmentRisk,
   generateDepartmentRecommendations,
+  ExtractedDocument,
+  MultiDocumentEvidence,
+  aggregateMultiDocumentEvidence,
 } from '../intelligence';
 
 let clientServicePromise: Promise<CpgramsService> | null = null;
@@ -46,7 +49,7 @@ async function getClientCpgramsService(): Promise<CpgramsService> {
 export async function fetchSystemMetadata(): Promise<SystemMetadata> {
   try {
     const res = await fetch('/api/meta');
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as SystemMetadata;
   } catch {}
   return {
     version: '0.6.0',
@@ -83,7 +86,7 @@ export async function fetchSystemOverview(
 ): Promise<SystemOverview> {
   try {
     const res = await fetch(`/api/overview?dataset=${encodeURIComponent(dataset)}${scope ? `&scope=${encodeURIComponent(scope)}` : ''}`);
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as SystemOverview;
   } catch {}
   const service = await getClientCpgramsService();
   return service.getSystemOverview(dataset, scope ? { scope } : undefined);
@@ -98,7 +101,7 @@ export async function fetchDepartmentSummaries(filters?: QueryFilters): Promise<
     if (filters?.minDisposalRate !== undefined) params.set('minDisposalRate', String(filters.minDisposalRate));
     const res = await fetch(`/api/departments?${params.toString()}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.departments;
     }
   } catch {}
@@ -118,7 +121,7 @@ export async function fetchDepartmentRanking(
     if (filters?.dataset) params.set('dataset', filters.dataset);
     const res = await fetch(`/api/departments/ranking?${params.toString()}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.ranking;
     }
   } catch {}
@@ -130,7 +133,7 @@ export async function fetchDepartmentRanking(
 export async function fetchDepartmentByName(entityName: string): Promise<DepartmentDetail | null> {
   try {
     const res = await fetch(`/api/departments/${encodeURIComponent(entityName)}`);
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as DepartmentDetail | null;
   } catch {}
   const service = await getClientCpgramsService();
   return service.getDepartmentByName(entityName);
@@ -140,7 +143,7 @@ export async function fetchDepartmentByName(entityName: string): Promise<Departm
 export async function fetchSystemInsights(): Promise<SystemInsight> {
   try {
     const res = await fetch('/api/intelligence/overview');
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as SystemInsight;
   } catch {}
   const service = await getClientCpgramsService();
   return getSystemInsights(service);
@@ -150,13 +153,11 @@ export async function fetchSystemInsights(): Promise<SystemInsight> {
 export async function fetchDepartmentInsights(entityName: string): Promise<DepartmentInsight | null> {
   try {
     const res = await fetch(`/api/intelligence/departments/${encodeURIComponent(entityName)}`);
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as DepartmentInsight | null;
   } catch {}
   const service = await getClientCpgramsService();
   return getDepartmentInsights(entityName, service);
 }
-
-import { ExtractedDocument, MultiDocumentEvidence, aggregateMultiDocumentEvidence } from '../intelligence';
 
 // 7. Grievance Routing (supports plain text and document evidence)
 export async function routeGrievance(
@@ -166,7 +167,7 @@ export async function routeGrievance(
   try {
     if (!documents || documents.length === 0) {
       const res = await fetch(`/api/intelligence/routing?text=${encodeURIComponent(text)}`);
-      if (res.ok) return await res.json();
+      if (res.ok) return (await res.json()) as RoutingRecommendation;
     } else {
       const res = await fetch('/api/evidence/analyze', {
         method: 'POST',
@@ -174,7 +175,7 @@ export async function routeGrievance(
         body: JSON.stringify({ queryText: text, documents }),
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as any;
         if (data.routing) return data.routing;
       }
     }
@@ -194,7 +195,7 @@ export async function analyzeEvidenceDocuments(
       body: JSON.stringify({ queryText, documents }),
     });
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.evidence;
     }
   } catch {}
@@ -205,7 +206,7 @@ export async function analyzeEvidenceDocuments(
 export async function fetchAppealsOverview(entity?: string): Promise<AppealsOverview> {
   try {
     const res = await fetch(`/api/appeals${entity ? `?entity=${encodeURIComponent(entity)}` : ''}`);
-    if (res.ok) return await res.json();
+    if (res.ok) return (await res.json()) as AppealsOverview;
   } catch {}
   const service = await getClientCpgramsService();
   return service.getAppealsOverview(entity ? { entity } : undefined);
@@ -219,7 +220,7 @@ export async function fetchHistoricalTrends(entity?: string, dataset?: string): 
     if (dataset) params.set('dataset', dataset);
     const res = await fetch(`/api/trends?${params.toString()}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.series;
     }
   } catch {}
@@ -232,7 +233,7 @@ export async function fetchEnrichedAttention(dataset: string = 'live_dashboard_2
   try {
     const res = await fetch(`/api/intelligence/attention?dataset=${encodeURIComponent(dataset)}${scope ? `&scope=${encodeURIComponent(scope)}` : ''}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.items;
     }
   } catch {}
@@ -284,36 +285,101 @@ const STORAGE_KEY = 'samadhan_citizen_grievances';
 const SAMPLE_GRIEVANCES: CitizenGrievanceRecord[] = [
   {
     id: 'SAM-2026-1042',
-    title: 'Income Tax Return Refund Delayed for AY 2025-26',
-    description: 'ITR-1 filed and e-verified on June 15, 2025. Refund of ₹14,200 is still shown as processing.',
+    title: 'Delayed Income Tax Refund AY 2025-26',
+    description: 'ITR e-verified in July 2025 but refund of ₹18,500 is still pending after 6 months.',
     category: 'Income Tax & Direct Taxation',
     routedEntity: 'Central Board of Direct Taxes (Income Tax)',
     submittedAt: '2026-08-10',
     status: 'IN_PROGRESS',
-    applicantName: 'Rajesh Sharma',
-    mobile: '98765*****',
+    applicantName: 'Ramesh Kumar Verma',
+    mobile: '+91 98765 43210',
     timeline: [
-      { title: 'Grievance Lodged', description: 'Submitted via SAMADHAN AI Assistant', timestamp: '10 Aug 2026, 10:30 AM', completed: true },
-      { title: 'Authority Acknowledged', description: 'Allocated to Nodal Officer, Assessment Unit 4', timestamp: '12 Aug 2026, 02:15 PM', completed: true },
-      { title: 'Verification in Progress', description: 'Refund reconciliation with CPC Bengaluru underway', timestamp: '18 Aug 2026, 11:00 AM', completed: true },
-      { title: 'Resolution & Closure', description: 'Final order and refund intimation notice issue', timestamp: 'Expected within 5 business days', completed: false },
+      {
+        title: 'Grievance Lodged',
+        description: 'Successfully registered via SAMADHAN AI Intake',
+        timestamp: '10 Aug 2026, 10:30 AM',
+        completed: true,
+      },
+      {
+        title: 'Assigned to Nodal Officer',
+        description: 'Transmitted to Central Board of Direct Taxes Redressal Cell (Officer ID: CBDT-ND-842)',
+        timestamp: '11 Aug 2026, 02:15 PM',
+        completed: true,
+      },
+      {
+        title: 'Under Technical Inquiry',
+        description: 'Refund processing cell initiated bank validation re-check',
+        timestamp: '14 Aug 2026, 11:00 AM',
+        completed: true,
+      },
+      {
+        title: 'Resolution & Closure',
+        description: 'Refund credit scheduled within 7 business days',
+        timestamp: 'Target SLA: 25 Aug 2026',
+        completed: false,
+      },
     ],
   },
   {
-    id: 'SAM-2026-2849',
-    title: 'EPFO Transfer of Previous Account PF Balance',
-    description: 'Online transfer request rejected twice without specifying reason from previous employer establishment.',
+    id: 'SAM-2026-1088',
+    title: 'Tatkal Ticket Cancellation Refund Not Credited',
+    description: 'Auto-cancelled waitlisted ticket #2847192841, refund amount ₹2,450 not received.',
+    category: 'Railways & Train Services',
+    routedEntity: 'Railway Board',
+    submittedAt: '2026-08-15',
+    status: 'UNDER_REVIEW',
+    applicantName: 'Priya Sharma',
+    mobile: '+91 91234 56789',
+    timeline: [
+      {
+        title: 'Grievance Lodged',
+        description: 'Registered and routed to Railway Board',
+        timestamp: '15 Aug 2026, 04:20 PM',
+        completed: true,
+      },
+      {
+        title: 'Assigned to IRCTC Nodal Desk',
+        description: 'Pending bank payment gateway audit',
+        timestamp: '16 Aug 2026, 09:45 AM',
+        completed: true,
+      },
+      {
+        title: 'Resolution & Closure',
+        description: 'Target SLA: 30 Aug 2026',
+        timestamp: 'Pending',
+        completed: false,
+      },
+    ],
+  },
+  {
+    id: 'SAM-2026-0912',
+    title: 'EPFO Transfer Claim Settlement',
+    description: 'Provident fund balance transfer from previous establishment in Pune.',
     category: 'Labour, EPFO & Pensions',
     routedEntity: 'Labour and Employment',
-    submittedAt: '2026-08-18',
-    status: 'UNDER_REVIEW',
-    applicantName: 'Priya Sundaram',
-    mobile: '91234*****',
+    submittedAt: '2026-07-28',
+    status: 'RESOLVED',
+    applicantName: 'Anil Deshmukh',
+    mobile: '+91 99887 76655',
     timeline: [
-      { title: 'Grievance Lodged', description: 'Submitted via SAMADHAN Natural Routing', timestamp: '18 Aug 2026, 04:45 PM', completed: true },
-      { title: 'Nodal Verification', description: 'Forwarded to Regional P.F. Commissioner II', timestamp: '20 Aug 2026, 09:30 AM', completed: true },
-      { title: 'Field Action', description: 'Employer establishment notice dispatched', timestamp: 'Pending verification', completed: false },
-      { title: 'Resolution', description: 'PF transfer completion intimation', timestamp: 'Pending', completed: false },
+      {
+        title: 'Grievance Lodged',
+        description: 'Registered with UAN details',
+        timestamp: '28 Jul 2026, 11:15 AM',
+        completed: true,
+      },
+      {
+        title: 'Nodal Officer Action',
+        description: 'Regional EPFO Office Pune reconciled Member ID records',
+        timestamp: '30 Jul 2026, 03:00 PM',
+        completed: true,
+      },
+      {
+        title: 'Resolved',
+        description: 'Transfer claim settled and credited to current account (Claim ID: PN-28491)',
+        timestamp: '05 Aug 2026, 04:30 PM',
+        completed: true,
+      },
     ],
   },
 ];
@@ -321,14 +387,14 @@ const SAMPLE_GRIEVANCES: CitizenGrievanceRecord[] = [
 export function getStoredCitizenGrievances(): CitizenGrievanceRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_GRIEVANCES));
-      return SAMPLE_GRIEVANCES;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
-    return JSON.parse(raw);
-  } catch {
-    return SAMPLE_GRIEVANCES;
-  }
+  } catch {}
+  return SAMPLE_GRIEVANCES;
 }
 
 export function saveCitizenGrievance(
@@ -396,7 +462,7 @@ export interface FacilitySearchResults {
   results: FacilityRecord[];
 }
 
-export async function fetchFacilitiesSearch(query: {
+export async function fetchFacilitySearch(query: {
   q?: string;
   state?: string;
   district?: string;
@@ -415,7 +481,7 @@ export async function fetchFacilitiesSearch(query: {
   try {
     const res = await fetch(`/api/facilities/search?${params.toString()}`);
     if (res.ok) {
-      return await res.json();
+      return (await res.json()) as FacilitySearchResults;
     }
   } catch (err) {
     console.warn('Facility search API unavailable:', err);
@@ -429,11 +495,13 @@ export async function fetchFacilitiesSearch(query: {
   };
 }
 
+export const fetchFacilitiesSearch = fetchFacilitySearch;
+
 export async function fetchFacilityById(id: string): Promise<FacilityRecord | null> {
   try {
     const res = await fetch(`/api/facilities/${encodeURIComponent(id)}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.facility || null;
     }
   } catch (err) {
@@ -447,7 +515,7 @@ export async function fetchDatasets() {
   try {
     const res = await fetch('/api/datasets');
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.datasets || [];
     }
   } catch (err) {
@@ -461,7 +529,7 @@ export async function fetchHistoricalOverview() {
   try {
     const res = await fetch('/api/historical/overview');
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.overview;
     }
   } catch (err) {
@@ -478,7 +546,7 @@ export async function fetchHistoricalComparisons(params?: { trend?: string; limi
   try {
     const res = await fetch(`/api/historical/trends?${query.toString()}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.results || [];
     }
   } catch (err) {
@@ -491,7 +559,7 @@ export async function fetchHistoricalDepartment(entity: string) {
   try {
     const res = await fetch(`/api/historical/departments/${encodeURIComponent(entity)}`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.profile || null;
     }
   } catch (err) {
@@ -505,7 +573,7 @@ export async function fetchMunicipalCaseStudy() {
   try {
     const res = await fetch('/api/municipal/pcmc');
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as any;
       return data.caseStudy || null;
     }
   } catch (err) {
@@ -513,5 +581,3 @@ export async function fetchMunicipalCaseStudy() {
   }
   return null;
 }
-
-

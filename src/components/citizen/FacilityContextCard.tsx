@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { EvidenceBadge } from '../common/EvidenceBadge';
-import { fetchFacilitiesSearch, FacilityRecord } from '../../services/apiClient';
+import { fetchFacilitiesSearch, FacilityRecord, FacilitySearchResults } from '../../services/apiClient';
 import { useTranslation } from '../../i18n';
 import { Hospital, MapPin, CheckCircle, Info, Sparkles, Building } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export const FacilityContextCard: React.FC<FacilityContextCardProps> = ({
       .trim();
 
     fetchFacilitiesSearch({ q: cleanQuery, limit: 3 })
-      .then(res => {
+      .then((res: FacilitySearchResults) => {
         if (!isMounted) return;
         if (res.results && res.results.length > 0) {
           setMatchedFacility(res.results[0]);

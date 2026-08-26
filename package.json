@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b tsconfig.app.json && vite build",
+    "typecheck": "tsc -b",
+    "typecheck:app": "tsc -b tsconfig.app.json",
+    "typecheck:node": "tsc -b tsconfig.node.json",
+    "typecheck:test": "tsc -b tsconfig.test.json",
     "preview": "vite preview",
     "verify": "tsx src/data/verify.ts",
     "test": "vitest run",
@@ -14,24 +18,24 @@
     "start": "tsx src/api/server.ts"
   },
   "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",
-    "tsx": "^4.23.12"
+    "tsx": "^4.23.12",
+    "typescript": "~5.7.2"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^22.13.5",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
     "@types/supertest": "^7.2.1",
     "@vitejs/plugin-react": "^4.3.4",
     "supertest": "^7.2.2",
-    "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vitest": "^4.1.11"
   }
