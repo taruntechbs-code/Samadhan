@@ -324,5 +324,54 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
         }
       }
     });
+
+    // Phase 14.5 Benchmark Query Suite (A through E)
+    describe('Phase 14.5 Benchmark Verification Suite', () => {
+      it('Benchmark A: routes ATM debit failure directly to Financial Services (Banking Division)', () => {
+        const rec = routeGrievanceText('Cash debited from ATM but bank machine failed to dispense money');
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.status).toBe('MATCHED');
+        expect(rec.recommendedEntity).toBe('Financial Services (Banking Division)');
+        expect(rec.detectedCategory).toBe('Banking & Financial Services');
+        expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+      });
+
+      it('Benchmark B: routes Income Tax refund grievance directly to Central Board of Direct Taxes', () => {
+        const rec = routeGrievanceText('My income tax refund has not been credited to my bank account for six months despite e-filing.');
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.status).toBe('MATCHED');
+        expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+        expect(rec.detectedCategory).toBe('Income Tax & Direct Taxation');
+        expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+      });
+
+      it('Benchmark C: routes PF balance grievance directly to Labour and Employment', () => {
+        const rec = routeGrievanceText('My PF balance has not been updated.');
+        expect(rec.outcomeKind).toBe('ROUTED');
+        expect(rec.status).toBe('MATCHED');
+        expect(rec.recommendedEntity).toBe('Labour and Employment');
+        expect(rec.detectedCategory).toBe('Labour, EPFO & Pensions');
+      });
+
+      it('Benchmark D: flags unlocated garbage grievance with city/municipality clarification', () => {
+        const rec = routeGrievanceText('Garbage has not been collected in my area.');
+        expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+        expect(rec.status).toBe('NEEDS_REVIEW');
+        expect(rec.recommendedEntity).toBeNull();
+        expect(rec.needsLocation).toBe(true);
+        expect(rec.clarification?.type).toBe('LOCATION');
+        expect(rec.clarification?.question).toContain('city or municipality');
+      });
+
+      it('Benchmark E: flags unprocessed documents grievance with document/service clarification', () => {
+        const rec = routeGrievanceText('My documents have not been processed.');
+        expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+        expect(rec.status).toBe('NEEDS_REVIEW');
+        expect(rec.recommendedEntity).toBeNull();
+        expect(rec.clarification?.type).toBe('DOCUMENT_TYPE');
+        expect(rec.clarification?.question).toBe('What type of document or government service is involved?');
+        expect(rec.clarification?.options?.length).toBeGreaterThanOrEqual(4);
+      });
+    });
   });
 });

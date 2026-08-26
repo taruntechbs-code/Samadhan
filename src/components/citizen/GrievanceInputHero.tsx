@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../common/Button';
 import { EvidenceBadge } from '../common/EvidenceBadge';
-import { routeGrievance } from '../../services/apiClient';
+import { routeGrievanceText } from '../../intelligence/routingEngine';
 import { RoutingRecommendation } from '../../intelligence/types';
 import { useTranslation } from '../../i18n';
 import { FacilityContextCard } from './FacilityContextCard';
@@ -51,7 +51,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   const [isRouting, setIsRouting] = useState(false);
   const [routingResult, setRoutingResult] = useState<RoutingRecommendation | null>(null);
   const [routingError, setRoutingError] = useState<string | null>(null);
-  const [progressStep, setProgressStep] = useState(1);
+  const [progressStep] = useState(4);
   const [locationInput, setLocationInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -99,53 +99,38 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   }, []);
 
   // Primary analysis execution
-  const handleAnalyze = async (overrideText?: string) => {
+  const handleAnalyze = (overrideText?: string) => {
     const queryToAnalyze = (overrideText !== undefined ? overrideText : text).trim();
     if (!queryToAnalyze && attachedDocs.length === 0) return;
 
     if ((import.meta as any).env?.DEV) {
-      console.log('[ANALYZE START]', queryToAnalyze);
+      console.log('[CTA CLICK] Triggering routing analysis for:', queryToAnalyze);
+      console.log('[ANALYZE START] Query:', queryToAnalyze);
+      console.log('[ROUTING CALL] Invoking routeGrievanceText directly');
     }
 
-    setIsRouting(true);
     setRoutingError(null);
-    setProgressStep(1);
-
-    const stepTimer1 = setTimeout(() => setProgressStep(2), 60);
-    const stepTimer2 = setTimeout(() => setProgressStep(3), 140);
-    const stepTimer3 = setTimeout(() => setProgressStep(4), 220);
 
     try {
-      if ((import.meta as any).env?.DEV) {
-        console.log('[LOCAL ROUTING START]');
-      }
-
-      // Smooth visual progression with guaranteed resolution
-      const [result] = await Promise.all([
-        routeGrievance(queryToAnalyze, attachedDocs),
-        new Promise(resolve => setTimeout(resolve, 260)),
-      ]);
+      const result = routeGrievanceText(queryToAnalyze, attachedDocs);
 
       if ((import.meta as any).env?.DEV) {
-        console.log('[LOCAL ROUTING RESULT]', result);
-        console.log('[STATE UPDATE] routingResult updated');
+        console.log('[ROUTING RESULT]', result);
+        console.log('[STATE UPDATE] Setting routingResult');
       }
 
       setRoutingResult(result);
+      setIsRouting(false);
+
+      if ((import.meta as any).env?.DEV) {
+        console.log('[ANALYZE COMPLETE] Routing finished successfully');
+      }
     } catch (err: any) {
       if ((import.meta as any).env?.DEV) {
         console.error('[ANALYZE ERROR]', err);
       }
-      setRoutingError(err.message || 'Routing analysis failed. Please try again.');
-    } finally {
-      clearTimeout(stepTimer1);
-      clearTimeout(stepTimer2);
-      clearTimeout(stepTimer3);
+      setRoutingError(err?.message || 'Routing analysis failed. Please try again.');
       setIsRouting(false);
-
-      if ((import.meta as any).env?.DEV) {
-        console.log('[ANALYZE COMPLETE] isRouting set to false');
-      }
     }
   };
 
