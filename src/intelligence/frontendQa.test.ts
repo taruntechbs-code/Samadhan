@@ -152,4 +152,62 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
       expect(s5.status).toBe('NEEDS_REVIEW');
     });
   });
+
+  // 7. Phase 14.3 Intake-to-Routing Result Flow Test Suite
+  describe('Phase 14.3 Intake-to-Routing Result Flow', () => {
+    it('routes Income Tax refund grievance with explanations and central jurisdiction', () => {
+      const rec = routeGrievanceText('Income tax refund for AY 2025-26 is still not credited to my bank account');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      expect(rec.detectedCategory).toBe('Income Tax & Direct Taxation');
+      expect(rec.jurisdictionLevel).toBe('CENTRAL_MINISTRY');
+      expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+      expect(rec.explanations && rec.explanations.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('routes EPFO PF balance grievance with high confidence and explanations', () => {
+      const rec = routeGrievanceText('EPFO PF balance transfer request from previous employer rejected without reason');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Labour and Employment');
+      expect(rec.detectedCategory).toBe('Labour, EPFO & Pensions');
+      expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+      expect(rec.explanations && rec.explanations.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('routes Kurnool sanitation grievance to Local Municipal Authority under 74th Amendment', () => {
+      const rec = routeGrievanceText('Garbage has not been collected for 7 days in Kurnool, Andhra Pradesh, and waste is accumulating near my street.');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Local Municipal Authority (Kurnool, Andhra Pradesh)');
+      expect(rec.detectedCategory).toBe('Municipal & Civic Sanitation');
+      expect(rec.jurisdictionLevel).toBe('LOCAL_MUNICIPAL');
+      expect(rec.confidence).toBeGreaterThanOrEqual(0.8);
+      expect(rec.explanations && rec.explanations.some(e => e.includes('74th Constitutional Amendment'))).toBe(true);
+    });
+
+    it('routes ATM debit failure to Financial Services (Banking Division)', () => {
+      const rec = routeGrievanceText('Cash debited from ATM but bank machine failed to dispense money');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Financial Services (Banking Division)');
+      expect(rec.detectedCategory).toBe('Banking & Financial Services');
+      expect(rec.jurisdictionLevel).toBe('CENTRAL_MINISTRY');
+      expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+    });
+
+    it('flags unlocated garbage grievance as NEEDS_REVIEW with location request and suggested cities', () => {
+      const rec = routeGrievanceText('My area garbage has not been cleaned.');
+      expect(rec.status).toBe('NEEDS_REVIEW');
+      expect(rec.recommendedEntity).toBeNull();
+      expect(rec.detectedCategory).toBe('Municipal & Civic Sanitation');
+      expect(rec.needsLocation).toBe(true);
+      expect(rec.suggestedLocations && rec.suggestedLocations.length).toBeGreaterThanOrEqual(4);
+      expect(rec.missingInfoGuidance).toContain('municipal corporations');
+    });
+
+    it('routes Hindi grievance to Central Board of Direct Taxes', () => {
+      const rec = routeGrievanceText('आयकर रिटर्न रिफंड 2025-26 ई-सत्यापन के बाद भी खाते में जमा नहीं हुआ');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      expect(rec.detectedCategory).toBe('Income Tax & Direct Taxation');
+    });
+  });
 });

@@ -12,6 +12,7 @@ import {
   Mic,
   MicOff,
   Building2,
+  Landmark,
   ArrowRight,
   ShieldCheck,
   Cpu,
@@ -22,7 +23,9 @@ import {
   FileText,
   X,
   Eye,
-  FileCheck
+  FileCheck,
+  CheckCircle2,
+  MapPin,
 } from 'lucide-react';
 
 interface GrievanceInputHeroProps {
@@ -47,6 +50,9 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
 
   const [isRouting, setIsRouting] = useState(false);
   const [routingResult, setRoutingResult] = useState<RoutingRecommendation | null>(null);
+  const [routingError, setRoutingError] = useState<string | null>(null);
+  const [progressStep, setProgressStep] = useState(1);
+  const [locationInput, setLocationInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const speechProviderRef = useRef<SpeechRecognitionProvider | null>(null);
@@ -76,42 +82,57 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
   useEffect(() => {
     if (externalQuery) {
       setText(externalQuery);
+      handleAnalyze(externalQuery);
     }
   }, [externalQuery]);
 
-  // Listen to custom scenario trigger event from navbar
+  // Listen to custom scenario trigger event from navbar/evaluator
   useEffect(() => {
     const handleGlobalTrigger = (e: any) => {
       if (e.detail?.query) {
         setText(e.detail.query);
+        handleAnalyze(e.detail.query);
       }
     };
     window.addEventListener('samadhan:triggerScenario', handleGlobalTrigger);
     return () => window.removeEventListener('samadhan:triggerScenario', handleGlobalTrigger);
   }, []);
 
-  // Auto-route on text or attached documents change
-  useEffect(() => {
-    if ((!text.trim() || text.trim().length < 5) && attachedDocs.length === 0) {
-      setRoutingResult(null);
-      return;
-    }
+  // Primary analysis execution
+  const handleAnalyze = async (overrideText?: string) => {
+    const queryToAnalyze = (overrideText !== undefined ? overrideText : text).trim();
+    if (!queryToAnalyze && attachedDocs.length === 0) return;
 
     setIsRouting(true);
+    setRoutingError(null);
+    setProgressStep(1);
 
-    const timer = setTimeout(async () => {
-      try {
-        const result = await routeGrievance(text, attachedDocs);
-        setRoutingResult(result);
-      } catch (err) {
-        console.error('Routing error:', err);
-      } finally {
-        setIsRouting(false);
-      }
-    }, 400);
+    const stepTimer1 = setTimeout(() => setProgressStep(2), 100);
+    const stepTimer2 = setTimeout(() => setProgressStep(3), 220);
+    const stepTimer3 = setTimeout(() => setProgressStep(4), 340);
 
-    return () => clearTimeout(timer);
-  }, [text, attachedDocs]);
+    try {
+      const result = await routeGrievance(queryToAnalyze, attachedDocs);
+      setRoutingResult(result);
+    } catch (err: any) {
+      console.error('Routing analysis error:', err);
+      setRoutingError(err.message || 'Routing analysis failed. Please try again.');
+    } finally {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
+      setIsRouting(false);
+    }
+  };
+
+  const handleAppendLocation = (loc: string) => {
+    if (!loc.trim()) return;
+    const base = text.trim();
+    const updated = base ? `${base} in ${loc.trim()}` : `Grievance in ${loc.trim()}`;
+    setText(updated);
+    setLocationInput('');
+    handleAnalyze(updated);
+  };
 
   // ==========================================
   // SPEECH-TO-TEXT CONTROLS
@@ -362,6 +383,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 }
                 value={text}
                 onChange={e => setText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleAnalyze();
+                  }
+                }}
                 aria-label="Describe your grievance in simple words"
               />
 
@@ -448,20 +475,36 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   )}
                 </div>
 
-                {routingResult && routingResult.recommendedEntity ? (
-                  <Button
-                    variant="filled"
-                    style={{ minHeight: '42px', padding: '0.45rem 1.25rem', fontSize: '0.8125rem' }}
-                    onClick={() => onOpenSubmitModal(routingResult, text)}
-                  >
-                    <span>{language === 'hi' ? 'प्राधिकरण को भेजें →' : 'Find the right authority →'}</span>
-                  </Button>
-                ) : (text.trim().length >= 5 || attachedDocs.length > 0) && isRouting ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--civic-brand)', fontWeight: 600 }}>
-                    <Cpu size={14} className="spin" />
-                    <span>{language === 'hi' ? 'प्राधिकरण मिलान हो रहा है...' : 'Matching public authority...'}</span>
-                  </div>
-                ) : null}
+                {/* Primary Unmissable Analyze CTA Button */}
+                <Button
+                  type="button"
+                  variant="filled"
+                  style={{
+                    minHeight: '44px',
+                    padding: '0.5rem 1.35rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
+                  disabled={isRouting || (!text.trim() && attachedDocs.length === 0)}
+                  onClick={() => handleAnalyze()}
+                  aria-label="Analyze grievance and find public authority"
+                >
+                  {isRouting ? (
+                    <>
+                      <Cpu size={16} className="spin" />
+                      <span>{language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing grievance...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{language === 'hi' ? 'सही प्राधिकरण खोजें' : 'Find the Right Authority'}</span>
+                      <ArrowRight size={17} />
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
@@ -583,7 +626,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             </div>
           )}
 
-          {/* Quick Example Starters (Option A: Smooth Swipeable Rail) */}
+          {/* Quick Example Starters (Smooth Swipeable Rail) */}
           <div style={{ width: '100%', marginTop: '0.875rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.45rem', justifyContent: 'center' }}>
               <Sparkles size={13} style={{ color: 'var(--civic-brand)' }} />
@@ -615,7 +658,10 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                     flexShrink: 0,
                     fontWeight: 500,
                   }}
-                  onClick={() => setText(qs)}
+                  onClick={() => {
+                    setText(qs);
+                    handleAnalyze(qs);
+                  }}
                 >
                   {qs.split(' ').slice(0, 3).join(' ')}...
                 </button>
@@ -625,48 +671,150 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         </div>
       </div>
 
-      {/* Real-Time Intelligent Routing Preview */}
-      {routingResult && routingResult.recommendedEntity && (
+      {/* Analysis In-Progress State (4-Step Lightweight Visual Progress) */}
+      {isRouting && (
+        <div
+          className="card-surface"
+          aria-live="polite"
+          style={{
+            border: '1.5px solid var(--civic-brand-border)',
+            backgroundColor: '#FFFFFF',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.875rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--civic-brand)', fontWeight: 700, fontSize: '0.9375rem' }}>
+            <Cpu size={18} className="spin" />
+            <span>{language === 'hi' ? 'समाधान प्रज्ञान इंजन विश्लेषण कर रहा है...' : 'SAMADHAN Intelligence Engine is Analyzing Your Grievance...'}</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.65rem' }}>
+            {[
+              { step: 1, label: language === 'hi' ? 'विवरण एवं मुख्य शब्दों का विश्लेषण' : '1. Understanding Description' },
+              { step: 2, label: language === 'hi' ? 'लोक सेवा श्रेणी की पहचान' : '2. Identifying Service Category' },
+              { step: 3, label: language === 'hi' ? 'सक्षम प्राधिकारी क्षेत्राधिकार का निर्धारण' : '3. Determining Authority Jurisdiction' },
+              { step: 4, label: language === 'hi' ? 'सीपीग्राम्स डेटा एवं साक्ष्य सत्यापन' : '4. Checking Verified Telemetry' },
+            ].map(st => (
+              <div
+                key={st.step}
+                style={{
+                  backgroundColor: progressStep >= st.step ? 'var(--civic-brand-light)' : 'var(--civic-canvas-subtle)',
+                  color: progressStep >= st.step ? 'var(--civic-brand-dark)' : 'var(--civic-text-muted)',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {progressStep > st.step ? <CheckCircle2 size={14} color="var(--civic-success)" /> : <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                <span>{st.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recoverable Error State */}
+      {routingError && !isRouting && (
         <div
           className="card-surface"
           style={{
+            border: '1.5px solid var(--civic-danger)',
+            backgroundColor: 'var(--civic-danger-bg)',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--civic-danger)', fontWeight: 700 }}>
+            <AlertCircle size={18} />
+            <span>{language === 'hi' ? 'विश्लेषण पूरा नहीं हो सका' : "We couldn't complete the routing analysis."}</span>
+          </div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--civic-text-secondary)', margin: 0 }}>
+            {language === 'hi'
+              ? 'आपकी शिकायत का विवरण सुरक्षित है। कृपया पुनः प्रयास करें।'
+              : 'Your grievance description is preserved. Please try analyzing again or edit your input.'}
+          </p>
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+            <Button variant="filled" style={{ minHeight: '38px', padding: '0.35rem 1rem', fontSize: '0.8125rem' }} onClick={() => handleAnalyze()}>
+              <span>{language === 'hi' ? 'पुनः प्रयास करें' : 'Try Again'}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Prominent High-Visibility Routing Result */}
+      {routingResult && routingResult.recommendedEntity && !isRouting && (
+        <div
+          id="routing-result-section"
+          className="card-surface"
+          aria-live="polite"
+          style={{
             border: '1.5px solid var(--civic-brand-border)',
             background: '#FFFFFF',
-            padding: '1.25rem',
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           {/* Header Banner */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--civic-border-light)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', paddingBottom: '0.875rem', borderBottom: '1px solid var(--civic-border-light)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span className="chip chip-primary" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-                {language === 'hi' ? 'शिकायत का विश्लेषण' : 'UNDERSTANDING YOUR GRIEVANCE'}
+              <span className="chip chip-primary" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
+                {language === 'hi' ? 'अनुशंसित लोक प्राधिकरण' : 'ROUTING RESULT'}
               </span>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-brand)' }}>
-                {Math.round(routingResult.confidence * 100)}% {language === 'hi' ? 'विश्वास स्कोर' : 'Confidence'}
+              <span
+                className="chip"
+                style={{
+                  backgroundColor: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? '#EEF2FF' : 'var(--civic-brand-light)',
+                  color: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? '#3730A3' : 'var(--civic-brand-dark)',
+                  border: '1px solid var(--civic-brand-border)',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                }}
+              >
+                {routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL'
+                  ? (language === 'hi' ? 'स्थानीय नगर निकाय (ULB)' : 'Local Municipal Authority')
+                  : routingResult.jurisdictionLevel === 'STATE_GOVERNMENT'
+                  ? (language === 'hi' ? 'राज्य सरकार' : 'State Government')
+                  : (language === 'hi' ? 'केंद्रीय मंत्रालय / विभाग' : 'Central Ministry / Department')}
+              </span>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--civic-brand)' }}>
+                {Math.round(routingResult.confidence * 100)}% {language === 'hi' ? 'विश्वास स्कोर' : 'Certainty'}
               </span>
             </div>
 
             <EvidenceBadge
               evidence={{
-                dataset: 'live_dashboard_2026',
+                dataset: routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? 'pcmc_municipal_case_study' : 'live_dashboard_2026',
                 entity: routingResult.recommendedEntity,
                 metric: 'target_authority_mapping',
                 value: routingResult.detectedCategory,
                 period: '2026-01-01 to 2026-08-24',
                 sourceUrl: 'https://pgportal.gov.in/darpgdashboard',
-                sourceNote: 'Entity catalogued in DARPG official master registry.',
+                sourceNote: 'Statutory jurisdiction catalogued in DARPG official master registry.',
               }}
               label={language === 'hi' ? 'सीपीग्राम्स सत्यापित' : 'CPGRAMS Operational Data'}
             />
           </div>
 
+          {/* Authority & Category Profile */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.25rem' }}>
             <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '10px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
                   backgroundColor: 'var(--civic-brand-light)',
                   color: 'var(--civic-brand-dark)',
                   display: 'flex',
@@ -675,27 +823,23 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Building2 size={22} />
+                {routingResult.jurisdictionLevel === 'LOCAL_MUNICIPAL' ? <Landmark size={24} /> : <Building2 size={24} />}
               </div>
 
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {language === 'hi' ? 'पहचाना गया मुद्दा / श्रेणी' : 'Detected Issue'}: <strong style={{ color: 'var(--civic-text-primary)' }}>{routingResult.detectedCategory}</strong>
+                  {language === 'hi' ? 'पहचाना गया मुद्दा / श्रेणी' : 'Detected Category'}: <strong style={{ color: 'var(--civic-text-primary)' }}>{routingResult.detectedCategory}</strong>
                 </div>
 
-                <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', marginTop: '0.2rem', fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', wordBreak: 'break-word' }}>
+                <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', marginTop: '0.25rem', fontSize: 'clamp(1.15rem, 3.5vw, 1.5rem)', wordBreak: 'break-word' }}>
                   {routingResult.recommendedEntity}
                 </h2>
-
-                <div style={{ fontSize: '0.875rem', color: 'var(--civic-text-secondary)', marginTop: '0.35rem', lineHeight: 1.5 }}>
-                  <strong>{language === 'hi' ? 'कारण:' : 'Why:'}</strong> {routingResult.matchReason}
-                </div>
               </div>
             </div>
 
             <Button
               variant="filled"
-              style={{ minHeight: '44px', padding: '0.65rem 1.35rem', width: 'auto' }}
+              style={{ minHeight: '46px', padding: '0.65rem 1.4rem', width: 'auto', fontWeight: 700 }}
               onClick={() => onOpenSubmitModal(routingResult, text)}
             >
               <span>{language === 'hi' ? 'इस विभाग में शिकायत दर्ज करें' : 'Lodge Grievance to this Authority'}</span>
@@ -703,11 +847,24 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             </Button>
           </div>
 
+          {/* Why this authority? Structured Deterministic Explanations */}
+          <div style={{ backgroundColor: 'var(--civic-canvas-subtle)', borderRadius: 'var(--radius-md)', padding: '1rem 1.25rem', border: '1px solid var(--civic-border-light)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {language === 'hi' ? 'इस प्राधिकरण की सिफारिश क्यों की गई?' : 'Why this Authority?'}
+            </span>
+            <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.84rem', color: 'var(--civic-text-primary)', lineHeight: 1.5 }}>
+              {routingResult.explanations && routingResult.explanations.length > 0 ? (
+                routingResult.explanations.map((exp, i) => <li key={i}>{exp}</li>)
+              ) : (
+                <li>{routingResult.matchReason}</li>
+              )}
+            </ul>
+          </div>
+
           {/* Document Evidence Section */}
           {routingResult.documentEvidence && routingResult.documentEvidence.totalAnalyzed > 0 && (
             <div
               style={{
-                marginTop: '1.25rem',
                 backgroundColor: 'var(--civic-canvas-subtle)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1rem 1.25rem',
@@ -750,7 +907,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
 
           {/* Alternative Candidates */}
           {routingResult.alternativeCandidates.length > 0 && (
-            <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--civic-border-light)' }}>
+            <div style={{ paddingTop: '0.75rem', borderTop: '1px solid var(--civic-border-light)' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {language === 'hi' ? 'वैकल्पिक प्राधिकरण विकल्प:' : 'Alternative Authority Candidates:'}
               </span>
@@ -776,21 +933,26 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             />
           )}
 
-          <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
             <ShieldCheck size={14} style={{ color: 'var(--civic-brand)' }} />
             <span>{routingResult.disclaimer}</span>
           </div>
         </div>
       )}
 
-      {/* Ambiguous / Needs Information Card (Responsible AI Triage) */}
-      {routingResult && !routingResult.recommendedEntity && (text.trim().length >= 5 || attachedDocs.length > 0) && (
+      {/* Ambiguous / Needs Information / Location Required Card (Responsible AI Triage) */}
+      {routingResult && !routingResult.recommendedEntity && !isRouting && (
         <div
+          id="routing-needs-info-section"
           className="card-surface"
+          aria-live="polite"
           style={{
             border: '1.5px solid var(--civic-warning-border)',
             background: 'var(--civic-warning-bg)',
             padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
           }}
         >
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
@@ -808,50 +970,108 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 border: '1px solid var(--civic-warning-border)',
               }}
             >
-              <AlertCircle size={22} />
+              {routingResult.needsLocation ? <MapPin size={22} /> : <AlertCircle size={22} />}
             </div>
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-                <span className="chip chip-medium" style={{ fontSize: '0.75rem' }}>
-                  {language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS REVIEW)' : 'Needs More Information (NEEDS REVIEW)'}
+                <span className="chip chip-medium" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
+                  {routingResult.needsLocation ? (language === 'hi' ? 'स्थान का विवरण आवश्यक' : 'Location Required') : (language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS REVIEW)' : 'Needs More Information (NEEDS REVIEW)')}
                 </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--civic-warning-text)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--civic-warning-text)', fontWeight: 600 }}>
                   {language === 'hi' ? 'जिम्मेदार एआई वर्गीकरण • शून्य बनावटी अनुमान' : 'Responsible AI Triage • Zero False Guessing'}
                 </span>
               </div>
 
-              <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', fontSize: '1.1rem' }}>
-                {language === 'hi' ? 'शिकायत में विशिष्ट विभाग या सेवा का विवरण नहीं मिला' : 'Grievance Lacks Specific Departmental Identifiers'}
+              <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', fontSize: '1.15rem' }}>
+                {routingResult.needsLocation
+                  ? (language === 'hi' ? 'यह शिकायत किस शहर या नगर पालिका की है?' : 'Which city or municipality is this in?')
+                  : (language === 'hi' ? 'शिकायत में विशिष्ट विभाग या सेवा का विवरण नहीं मिला' : 'Grievance Lacks Specific Departmental Identifiers')}
               </h2>
 
               <p style={{ fontSize: '0.875rem', color: 'var(--civic-text-secondary)', marginTop: '0.35rem', lineHeight: 1.5 }}>
                 {routingResult.missingInfoGuidance || routingResult.matchReason}
               </p>
 
-              {/* Document Evidence if available */}
-              {routingResult.documentEvidence && routingResult.documentEvidence.totalAnalyzed > 0 && (
-                <div style={{ marginTop: '0.5rem', fontSize: '0.8125rem', color: 'var(--civic-warning-text)' }}>
-                  Attached evidence note: {routingResult.documentEvidence.convergenceExplanation}
+              {/* Explanations bullet points */}
+              {routingResult.explanations && routingResult.explanations.length > 0 && (
+                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8125rem', color: 'var(--civic-text-secondary)' }}>
+                  {routingResult.explanations.map((exp, i) => <li key={i}>{exp}</li>)}
+                </ul>
+              )}
+
+              {/* Location prompt input and chips when needsLocation */}
+              {routingResult.needsLocation && (
+                <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      className="input-filled"
+                      style={{ flex: '1 1 200px', minHeight: '40px', padding: '0.4rem 0.85rem', fontSize: '0.875rem', backgroundColor: '#FFFFFF' }}
+                      placeholder={language === 'hi' ? 'उदा. कुरनूल, आंध्र प्रदेश या पिंपरी चिंचवड' : 'e.g. Kurnool, Andhra Pradesh or Pune'}
+                      value={locationInput}
+                      onChange={e => setLocationInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && locationInput.trim()) {
+                          e.preventDefault();
+                          handleAppendLocation(locationInput);
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="filled"
+                      style={{ minHeight: '40px', padding: '0.4rem 1rem', fontSize: '0.8125rem' }}
+                      onClick={() => handleAppendLocation(locationInput)}
+                      disabled={!locationInput.trim()}
+                    >
+                      <span>{language === 'hi' ? 'स्थान जोड़ें एवं पुनः विश्लेषण करें' : 'Add Location & Re-analyze'}</span>
+                    </Button>
+                  </div>
+
+                  {routingResult.suggestedLocations && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--civic-text-muted)' }}>
+                        {language === 'hi' ? 'त्वरित शहर चुनें:' : 'Quick locations:'}
+                      </span>
+                      {routingResult.suggestedLocations.map(loc => (
+                        <button
+                          key={loc}
+                          type="button"
+                          className="btn btn-tonal"
+                          style={{ minHeight: '32px', padding: '0.25rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
+                          onClick={() => handleAppendLocation(loc)}
+                        >
+                          + {loc}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)' }}>
-                  {language === 'hi' ? 'सुझाए गए विषय जोड़ें:' : 'Add specific domain keyword:'}
-                </span>
-                {['EPFO / Pension', 'Income Tax / Refund', 'Health / Hospital', 'Railways / IRCTC', 'Electricity / Power', 'Passport'].map(sug => (
-                  <button
-                    key={sug}
-                    type="button"
-                    className="btn btn-tonal"
-                    style={{ minHeight: '28px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF' }}
-                    onClick={() => setText(prev => prev ? `${prev} (${sug})` : sug)}
-                  >
-                    + {sug}
-                  </button>
-                ))}
-              </div>
+              {/* Domain suggestion chips for general ambiguity */}
+              {!routingResult.needsLocation && (
+                <div style={{ marginTop: '0.875rem', display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)' }}>
+                    {language === 'hi' ? 'सुझाए गए विषय जोड़ें:' : 'Add specific domain keyword:'}
+                  </span>
+                  {['EPFO / Pension', 'Income Tax / Refund', 'Health / Hospital', 'Railways / IRCTC', 'Electricity / Power', 'Passport'].map(sug => (
+                    <button
+                      key={sug}
+                      type="button"
+                      className="btn btn-tonal"
+                      style={{ minHeight: '32px', padding: '0.25rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
+                      onClick={() => {
+                        const updated = text ? `${text} (${sug})` : sug;
+                        setText(updated);
+                        handleAnalyze(updated);
+                      }}
+                    >
+                      + {sug}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -140,6 +140,10 @@ export interface RoutingRecommendation {
   facilityDomain?: 'HEALTHCARE' | 'GENERAL';
   extractedFacilityQuery?: string;
   documentEvidence?: DocumentEvidenceSummary;
+  jurisdictionLevel?: 'CENTRAL_MINISTRY' | 'STATE_GOVERNMENT' | 'LOCAL_MUNICIPAL' | 'GENERAL';
+  explanations?: string[];
+  needsLocation?: boolean;
+  suggestedLocations?: string[];
 }
 
 export interface SystemMetadata {
