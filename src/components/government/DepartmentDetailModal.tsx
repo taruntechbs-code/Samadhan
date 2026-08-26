@@ -264,9 +264,9 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
                         }
                         style={{ fontSize: '0.75rem' }}
                       >
-                        {historical.trend === 'IMPROVING' && `+${historical.varianceDisposalRate}% • ${t('historical.improving')}`}
-                        {historical.trend === 'DETERIORATING' && `${historical.varianceDisposalRate}% • ${t('historical.deteriorating')}`}
-                        {historical.trend === 'STABLE' && `${historical.varianceDisposalRate}% • ${t('historical.stable')}`}
+                        {historical.trend === 'IMPROVING' && `${historical.varianceDisposalRate >= 0 ? `+${historical.varianceDisposalRate}` : historical.varianceDisposalRate} pp • ${t('historical.improving')}`}
+                        {historical.trend === 'DETERIORATING' && `${historical.varianceDisposalRate} pp • ${t('historical.deteriorating')}`}
+                        {historical.trend === 'STABLE' && `${historical.varianceDisposalRate >= 0 ? `+${historical.varianceDisposalRate}` : historical.varianceDisposalRate} pp • ${t('historical.stable')}`}
                         {historical.trend === 'INSUFFICIENT_HISTORY' && t('historical.insufficientHistory')}
                       </span>
                     </div>

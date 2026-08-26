@@ -4,13 +4,17 @@ import {
   fetchHistoricalOverview,
   fetchHistoricalComparisons,
   fetchMunicipalCaseStudy,
+  DepartmentHistoricalProfile,
+  HistoricalSystemOverview,
+  MunicipalCaseStudy,
 } from '../../services/apiClient';
 import {
   TrendingUp,
   TrendingDown,
   Minus,
   History,
-  Building2
+  Building2,
+  HelpCircle,
 } from 'lucide-react';
 
 interface HistoricalIntelligenceCardProps {
@@ -21,10 +25,11 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
   onSelectDepartment,
 }) => {
   const { language } = useTranslation();
-  const [trends, setTrends] = useState<any[]>([]);
+  const [trends, setTrends] = useState<DepartmentHistoricalProfile[]>([]);
+  const [overview, setOverview] = useState<HistoricalSystemOverview | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'IMPROVING' | 'STABLE' | 'DETERIORATING'>('ALL');
   const [showMunicipal, setShowMunicipal] = useState(false);
-  const [municipalData, setMunicipalData] = useState<any>(null);
+  const [municipalData, setMunicipalData] = useState<MunicipalCaseStudy | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +38,8 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
       fetchHistoricalComparisons(),
       fetchMunicipalCaseStudy(),
     ])
-      .then(([_ov, tr, mun]) => {
+      .then(([ov, tr, mun]) => {
+        setOverview(ov);
         setTrends(tr || []);
         setMunicipalData(mun);
         setLoading(false);
@@ -46,37 +52,65 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
     return item.trend === filter;
   });
 
-  const getTrendBadge = (trend: string, delta: number) => {
+  const formatPercentage = (val: number | undefined | null): string => {
+    if (val === undefined || val === null || isNaN(val)) return '—';
+    return `${val}%`;
+  };
+
+  const formatDeltaPp = (val: number | undefined | null, hasBaseline: boolean): string => {
+    if (!hasBaseline || val === undefined || val === null || isNaN(val)) return '—';
+    return val >= 0 ? `+${val} pp` : `${val} pp`;
+  };
+
+  const getTrendBadge = (
+    trend: string,
+    delta: number | undefined | null,
+    hasBaseline: boolean
+  ) => {
+    if (!hasBaseline || trend === 'INSUFFICIENT_HISTORY') {
+      return (
+        <span
+          className="chip chip-secondary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
+        >
+          <HelpCircle size={13} />
+          <span>{language === 'hi' ? 'सीमित इतिहास' : 'Insufficient History'}</span>
+        </span>
+      );
+    }
     if (trend === 'IMPROVING') {
+      const deltaStr = delta != null && !isNaN(delta) ? (delta >= 0 ? `+${delta}` : `${delta}`) : '';
       return (
         <span
           className="chip chip-low"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
         >
           <TrendingUp size={13} />
-          <span>+{delta}% • {language === 'hi' ? 'सुधार (IMPROVING)' : 'Improving'}</span>
+          <span>{deltaStr ? `${deltaStr} pp • ` : ''}{language === 'hi' ? 'सुधार (IMPROVING)' : 'Improving'}</span>
         </span>
       );
     }
     if (trend === 'DETERIORATING') {
+      const deltaStr = delta != null && !isNaN(delta) ? `${delta}` : '';
       return (
         <span
           className="chip chip-critical"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
         >
           <TrendingDown size={13} />
-          <span>{delta}% • {language === 'hi' ? 'गिरावट (DETERIORATING)' : 'Deteriorating'}</span>
+          <span>{deltaStr ? `${deltaStr} pp • ` : ''}{language === 'hi' ? 'गिरावट (DETERIORATING)' : 'Deteriorating'}</span>
         </span>
       );
     }
     if (trend === 'STABLE') {
+      const deltaStr = delta != null && !isNaN(delta) ? (delta >= 0 ? `+${delta}` : `${delta}`) : '';
       return (
         <span
           className="chip chip-medium"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
         >
           <Minus size={13} />
-          <span>{delta >= 0 ? `+${delta}%` : `${delta}%`} • {language === 'hi' ? 'स्थिर (STABLE)' : 'Stable'}</span>
+          <span>{deltaStr ? `${deltaStr} pp • ` : ''}{language === 'hi' ? 'स्थिर (STABLE)' : 'Stable'}</span>
         </span>
       );
     }
@@ -177,6 +211,55 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
 
         {!showMunicipal ? (
           <>
+            {/* System Overview Stats Banner */}
+            {overview && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '0.875rem',
+                  padding: '1rem',
+                  backgroundColor: 'var(--civic-canvas-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--civic-border-light)',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+                    {language === 'hi' ? 'ट्रैक किए गए प्राधिकरण' : 'Tracked Authorities'}
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--civic-text-primary)' }}>
+                    {overview.totalEntitiesTracked}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+                    {language === 'hi' ? 'ऐतिहासिक आधार वाले' : 'With 10-Yr Baseline'}
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--civic-brand)' }}>
+                    {overview.totalEntitiesWithHistory}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+                    {language === 'hi' ? 'सुधार की स्थिति (Improving)' : 'Improving Velocity'}
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--civic-success)' }}>
+                    {overview.improvingCount}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+                    {language === 'hi' ? 'गिरावट की स्थिति (Deteriorating)' : 'Deteriorating Velocity'}
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--civic-danger)' }}>
+                    {overview.deterioratingCount}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Filter Chips */}
             <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
               {(['ALL', 'IMPROVING', 'STABLE', 'DETERIORATING'] as const).map(f => (
@@ -199,10 +282,10 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
                   {f === 'ALL'
                     ? (language === 'hi' ? `सभी प्राधिकरण (${trends.length})` : `All Authorities (${trends.length})`)
                     : f === 'IMPROVING'
-                    ? (language === 'hi' ? 'सुधार (Improving)' : 'Improving')
+                    ? (language === 'hi' ? `सुधार (${overview?.improvingCount ?? 0})` : `Improving (${overview?.improvingCount ?? 0})`)
                     : f === 'STABLE'
-                    ? (language === 'hi' ? 'स्थिर (Stable)' : 'Stable')
-                    : (language === 'hi' ? 'गिरावट (Deteriorating)' : 'Deteriorating')}
+                    ? (language === 'hi' ? `स्थिर (${overview?.stableCount ?? 0})` : `Stable (${overview?.stableCount ?? 0})`)
+                    : (language === 'hi' ? `गिरावट (${overview?.deterioratingCount ?? 0})` : `Deteriorating (${overview?.deterioratingCount ?? 0})`)}
                 </button>
               ))}
             </div>
@@ -221,29 +304,61 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTrends.slice(0, 15).map((item, idx) => (
-                    <tr key={idx}>
-                      <td style={{ fontWeight: 600 }}>{item.department}</td>
-                      <td className="tabular-nums" style={{ fontWeight: 700 }}>{item.currentRate}%</td>
-                      <td className="tabular-nums" style={{ color: 'var(--civic-text-muted)' }}>{item.historicalRate}%</td>
-                      <td className="tabular-nums" style={{ fontWeight: 700, color: item.delta >= 0 ? 'var(--civic-success)' : 'var(--civic-danger)' }}>
-                        {item.delta >= 0 ? `+${item.delta}` : item.delta} pp
-                      </td>
-                      <td>{getTrendBadge(item.trend, item.delta)}</td>
-                      {onSelectDepartment && (
-                        <td>
-                          <button
-                            type="button"
-                            className="btn btn-text"
-                            style={{ minHeight: 'auto', padding: '0.2rem 0.5rem', fontSize: '0.75rem', color: 'var(--civic-brand)' }}
-                            onClick={() => onSelectDepartment(item.department)}
-                          >
-                            Inspect &rarr;
-                          </button>
+                  {filteredTrends.slice(0, 25).map((item, idx) => {
+                    const entityName = item.entity || 'Unknown Authority';
+                    const currentStr = formatPercentage(item.currentDisposalRate);
+                    const histStr = item.hasHistoricalBaseline && item.historicalDisposalRate != null
+                      ? formatPercentage(item.historicalDisposalRate)
+                      : (language === 'hi' ? 'सीमित इतिहास' : 'Insufficient history');
+                    const deltaStr = formatDeltaPp(item.varianceDisposalRate, item.hasHistoricalBaseline);
+
+                    return (
+                      <tr key={item.entity || idx}>
+                        <td style={{ fontWeight: 600 }}>{entityName}</td>
+                        <td className="tabular-nums" style={{ fontWeight: 700 }}>
+                          {currentStr}
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="tabular-nums" style={{ color: 'var(--civic-text-muted)' }}>
+                          {histStr}
+                        </td>
+                        <td
+                          className="tabular-nums"
+                          style={{
+                            fontWeight: 700,
+                            color:
+                              item.hasHistoricalBaseline && item.varianceDisposalRate != null
+                                ? item.varianceDisposalRate >= 0
+                                  ? 'var(--civic-success)'
+                                  : 'var(--civic-danger)'
+                                : 'var(--civic-text-muted)',
+                          }}
+                        >
+                          {deltaStr}
+                        </td>
+                        <td>{getTrendBadge(item.trend, item.varianceDisposalRate, item.hasHistoricalBaseline)}</td>
+                        {onSelectDepartment && (
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-text"
+                              style={{
+                                minHeight: 'auto',
+                                padding: '0.25rem 0.6rem',
+                                fontSize: '0.75rem',
+                                color: 'var(--civic-brand)',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => onSelectDepartment(entityName)}
+                              aria-label={`Inspect historical performance for ${entityName}`}
+                            >
+                              Inspect &rarr;
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -276,7 +391,7 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
                 <div style={{ backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '8px', border: '1px solid var(--civic-border-light)' }}>
                   <div style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>Disposed Cases</div>
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--civic-success)' }}>
-                    {municipalData.disposedGrievances?.toLocaleString('en-IN') || '38,920'}
+                    {municipalData.resolvedGrievances?.toLocaleString('en-IN') || '44,280'}
                   </div>
                 </div>
 

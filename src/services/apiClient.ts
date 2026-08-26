@@ -524,21 +524,37 @@ export async function fetchDatasets() {
   return [];
 }
 
+import {
+  DepartmentHistoricalProfile,
+  HistoricalSystemOverview,
+  getAllHistoricalComparisons,
+  getDepartmentHistoricalComparison,
+  getHistoricalSystemOverview,
+} from '../data/cpgramsHistorical';
+import { getMunicipalCaseStudy, MunicipalCaseStudyProfile } from '../data/municipal/pcmc';
+
+export type { DepartmentHistoricalProfile, HistoricalSystemOverview, MunicipalCaseStudyProfile };
+export type MunicipalCaseStudy = MunicipalCaseStudyProfile;
+
 // 9. Historical Intelligence
-export async function fetchHistoricalOverview() {
+export async function fetchHistoricalOverview(): Promise<HistoricalSystemOverview | null> {
   try {
     const res = await fetch('/api/historical/overview');
     if (res.ok) {
       const data = (await res.json()) as any;
-      return data.overview;
+      if (data.overview) return data.overview;
     }
   } catch (err) {
-    console.warn('Historical overview API unavailable:', err);
+    console.warn('Historical overview API unavailable, using client fallback:', err);
   }
-  return null;
+  const service = await getClientCpgramsService();
+  return getHistoricalSystemOverview(service);
 }
 
-export async function fetchHistoricalComparisons(params?: { trend?: string; limit?: number }) {
+export async function fetchHistoricalComparisons(params?: {
+  trend?: string;
+  limit?: number;
+}): Promise<DepartmentHistoricalProfile[]> {
   const query = new URLSearchParams();
   if (params?.trend) query.set('trend', params.trend);
   if (params?.limit) query.set('limit', String(params.limit));
@@ -547,37 +563,49 @@ export async function fetchHistoricalComparisons(params?: { trend?: string; limi
     const res = await fetch(`/api/historical/trends?${query.toString()}`);
     if (res.ok) {
       const data = (await res.json()) as any;
-      return data.results || [];
+      if (data.results && Array.isArray(data.results)) {
+        return data.results;
+      }
     }
   } catch (err) {
-    console.warn('Historical comparisons API unavailable:', err);
+    console.warn('Historical comparisons API unavailable, using client fallback:', err);
   }
-  return [];
+
+  const service = await getClientCpgramsService();
+  let comparisons = getAllHistoricalComparisons(service);
+  if (params?.trend && params.trend !== 'ALL') {
+    comparisons = comparisons.filter(c => c.trend === params.trend!.toUpperCase());
+  }
+  if (params?.limit) {
+    comparisons = comparisons.slice(0, params.limit);
+  }
+  return comparisons;
 }
 
-export async function fetchHistoricalDepartment(entity: string) {
+export async function fetchHistoricalDepartment(entity: string): Promise<DepartmentHistoricalProfile | null> {
   try {
     const res = await fetch(`/api/historical/departments/${encodeURIComponent(entity)}`);
     if (res.ok) {
       const data = (await res.json()) as any;
-      return data.profile || null;
+      if (data.profile) return data.profile;
     }
   } catch (err) {
-    console.warn('Historical department API unavailable:', err);
+    console.warn('Historical department API unavailable, using client fallback:', err);
   }
-  return null;
+  const service = await getClientCpgramsService();
+  return getDepartmentHistoricalComparison(entity, service);
 }
 
 // 10. Municipal Case Study (PCMC)
-export async function fetchMunicipalCaseStudy() {
+export async function fetchMunicipalCaseStudy(): Promise<MunicipalCaseStudy | null> {
   try {
     const res = await fetch('/api/municipal/pcmc');
     if (res.ok) {
       const data = (await res.json()) as any;
-      return data.caseStudy || null;
+      if (data.caseStudy) return data.caseStudy;
     }
   } catch (err) {
-    console.warn('Municipal case study API unavailable:', err);
+    console.warn('Municipal case study API unavailable, using client fallback:', err);
   }
-  return null;
+  return getMunicipalCaseStudy();
 }

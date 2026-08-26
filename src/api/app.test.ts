@@ -363,6 +363,9 @@ describe('SAMADHAN API Endpoints', () => {
       expect(res.status).toBe(200);
       expect(res.body.results.length).toBeLessThanOrEqual(10);
       expect(res.body.results[0].currentDisposalRate).toBeDefined();
+      expect(res.body.results.every((r: any) => typeof r.entity === 'string' && r.entity.length > 0)).toBe(true);
+      expect(res.body.results.every((r: any) => typeof r.currentDisposalRate === 'number')).toBe(true);
+      expect(res.body.results.every((r: any) => typeof r.hasHistoricalBaseline === 'boolean')).toBe(true);
 
       const filtered = await request(app).get('/api/historical/trends?trend=IMPROVING');
       expect(filtered.status).toBe(200);
@@ -373,11 +376,25 @@ describe('SAMADHAN API Endpoints', () => {
       expect(invalidTrend.body.error.code).toBe('INVALID_PARAMETER');
     });
 
-    it('GET /api/historical/departments/:entity returns single department baseline', async () => {
-      const res = await request(app).get('/api/historical/departments/Labour%20and%20Employment');
-      expect(res.status).toBe(200);
-      expect(res.body.profile.entity).toBe('Labour and Employment');
-      expect(res.body.profile.hasHistoricalBaseline).toBe(true);
+    it('GET /api/historical/departments/:entity returns single department baseline across various authorities', async () => {
+      const resLabour = await request(app).get('/api/historical/departments/Labour%20and%20Employment');
+      expect(resLabour.status).toBe(200);
+      expect(resLabour.body.profile.entity).toBe('Labour and Employment');
+      expect(resLabour.body.profile.hasHistoricalBaseline).toBe(true);
+      expect(typeof resLabour.body.profile.currentDisposalRate).toBe('number');
+      expect(typeof resLabour.body.profile.varianceDisposalRate).toBe('number');
+
+      const resHealth = await request(app).get('/api/historical/departments/Health%20%26%20Family%20Welfare');
+      expect(resHealth.status).toBe(200);
+      expect(resHealth.body.profile.entity).toBe('Health & Family Welfare');
+
+      const resPosts = await request(app).get('/api/historical/departments/Posts');
+      expect(resPosts.status).toBe(200);
+      expect(resPosts.body.profile.entity).toBe('Posts');
+
+      const resCbdt = await request(app).get('/api/historical/departments/Central%20Board%20of%20Direct%20Taxes%20(Income%20Tax)');
+      expect(resCbdt.status).toBe(200);
+      expect(resCbdt.body.profile.entity).toBe('Central Board of Direct Taxes (Income Tax)');
 
       const notFound = await request(app).get('/api/historical/departments/NON_EXISTENT_MINISTRY');
       expect(notFound.status).toBe(404);
