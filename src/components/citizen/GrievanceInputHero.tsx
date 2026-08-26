@@ -477,26 +477,33 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
 
                 {/* Primary Unmissable Analyze CTA Button */}
                 <Button
+                  id="btn-find-authority"
                   type="button"
                   variant="filled"
+                  className="composer-analyze-cta"
                   style={{
                     minHeight: '44px',
-                    padding: '0.5rem 1.35rem',
+                    padding: '0.55rem 1.4rem',
                     fontSize: '0.875rem',
                     fontWeight: 700,
                     display: 'inline-flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '0.5rem',
                     boxShadow: 'var(--shadow-sm)',
                   }}
                   disabled={isRouting || (!text.trim() && attachedDocs.length === 0)}
                   onClick={() => handleAnalyze()}
-                  aria-label="Analyze grievance and find public authority"
+                  aria-label={
+                    !text.trim() && attachedDocs.length === 0
+                      ? (language === 'hi' ? 'प्राधिकरण खोजने से पहले अपनी शिकायत लिखें' : 'Enter a grievance before finding the appropriate authority')
+                      : (language === 'hi' ? 'शिकायत का विश्लेषण करें एवं लोक प्राधिकरण खोजें' : 'Analyze grievance and find public authority')
+                  }
                 >
                   {isRouting ? (
                     <>
                       <Cpu size={16} className="spin" />
-                      <span>{language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing grievance...'}</span>
+                      <span>{language === 'hi' ? 'शिकायत का विश्लेषण हो रहा है...' : 'Analyzing grievance...'}</span>
                     </>
                   ) : (
                     <>
@@ -660,8 +667,9 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   }}
                   onClick={() => {
                     setText(qs);
-                    handleAnalyze(qs);
+                    setRoutingResult(null);
                   }}
+                  aria-label={`Select example grievance: ${qs}`}
                 >
                   {qs.split(' ').slice(0, 3).join(' ')}...
                 </button>
@@ -676,6 +684,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
         <div
           className="card-surface"
           aria-live="polite"
+          aria-busy="true"
           style={{
             border: '1.5px solid var(--civic-brand-border)',
             backgroundColor: '#FFFFFF',
@@ -724,6 +733,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       {routingError && !isRouting && (
         <div
           className="card-surface"
+          aria-live="polite"
           style={{
             border: '1.5px solid var(--civic-danger)',
             backgroundColor: 'var(--civic-danger-bg)',
@@ -743,7 +753,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               : 'Your grievance description is preserved. Please try analyzing again or edit your input.'}
           </p>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-            <Button variant="filled" style={{ minHeight: '38px', padding: '0.35rem 1rem', fontSize: '0.8125rem' }} onClick={() => handleAnalyze()}>
+            <Button variant="filled" style={{ minHeight: '44px', padding: '0.35rem 1.25rem', fontSize: '0.8125rem' }} onClick={() => handleAnalyze()}>
               <span>{language === 'hi' ? 'पुनः प्रयास करें' : 'Try Again'}</span>
             </Button>
           </div>
@@ -970,13 +980,15 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 border: '1px solid var(--civic-warning-border)',
               }}
             >
-              {routingResult.needsLocation ? <MapPin size={22} /> : <AlertCircle size={22} />}
+              {routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION' ? <MapPin size={22} /> : <AlertCircle size={22} />}
             </div>
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                 <span className="chip chip-medium" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-                  {routingResult.needsLocation ? (language === 'hi' ? 'स्थान का विवरण आवश्यक' : 'Location Required') : (language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS REVIEW)' : 'Needs More Information (NEEDS REVIEW)')}
+                  {routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION'
+                    ? (language === 'hi' ? 'स्थान का विवरण आवश्यक' : 'Location Required')
+                    : (language === 'hi' ? 'अतिरिक्त विवरण आवश्यक (NEEDS INFORMATION)' : 'Needs More Information (NEEDS INFORMATION)')}
                 </span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--civic-warning-text)', fontWeight: 600 }}>
                   {language === 'hi' ? 'जिम्मेदार एआई वर्गीकरण • शून्य बनावटी अनुमान' : 'Responsible AI Triage • Zero False Guessing'}
@@ -984,13 +996,15 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               </div>
 
               <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', fontSize: '1.15rem' }}>
-                {routingResult.needsLocation
+                {routingResult.clarification?.question
+                  ? routingResult.clarification.question
+                  : routingResult.needsLocation
                   ? (language === 'hi' ? 'यह शिकायत किस शहर या नगर पालिका की है?' : 'Which city or municipality is this in?')
                   : (language === 'hi' ? 'शिकायत में विशिष्ट विभाग या सेवा का विवरण नहीं मिला' : 'Grievance Lacks Specific Departmental Identifiers')}
               </h2>
 
               <p style={{ fontSize: '0.875rem', color: 'var(--civic-text-secondary)', marginTop: '0.35rem', lineHeight: 1.5 }}>
-                {routingResult.missingInfoGuidance || routingResult.matchReason}
+                {routingResult.clarification?.reason || routingResult.missingInfoGuidance || routingResult.matchReason}
               </p>
 
               {/* Explanations bullet points */}
@@ -1000,14 +1014,54 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 </ul>
               )}
 
+              {/* Interactive Clarification Option Cards */}
+              {routingResult.clarification?.options && routingResult.clarification.options.length > 0 && (
+                <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {language === 'hi' ? 'प्रासंगिक श्रेणी या पोर्टल चुनें:' : 'Select Relevant Service or Portal:'}
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                    {routingResult.clarification.options.map((opt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="btn btn-tonal"
+                        style={{
+                          minHeight: '44px',
+                          padding: '0.5rem 0.85rem',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid var(--civic-border-medium)',
+                          borderRadius: 'var(--radius-md)',
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-start',
+                          color: 'var(--civic-text-primary)',
+                        }}
+                        onClick={() => {
+                          const updated = `${text.trim()} (${opt.querySuffix})`;
+                          setText(updated);
+                          handleAnalyze(updated);
+                        }}
+                      >
+                        <span style={{ color: 'var(--civic-brand)', marginRight: '0.4rem', fontWeight: 800 }}>→</span>
+                        <span>{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Location prompt input and chips when needsLocation */}
-              {routingResult.needsLocation && (
+              {(routingResult.needsLocation || routingResult.clarification?.type === 'LOCATION') && (
                 <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <input
                       type="text"
                       className="input-filled"
-                      style={{ flex: '1 1 200px', minHeight: '40px', padding: '0.4rem 0.85rem', fontSize: '0.875rem', backgroundColor: '#FFFFFF' }}
+                      style={{ flex: '1 1 200px', minHeight: '44px', padding: '0.4rem 0.85rem', fontSize: '0.875rem', backgroundColor: '#FFFFFF' }}
                       placeholder={language === 'hi' ? 'उदा. कुरनूल, आंध्र प्रदेश या पिंपरी चिंचवड' : 'e.g. Kurnool, Andhra Pradesh or Pune'}
                       value={locationInput}
                       onChange={e => setLocationInput(e.target.value)}
@@ -1020,7 +1074,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                     />
                     <Button
                       variant="filled"
-                      style={{ minHeight: '40px', padding: '0.4rem 1rem', fontSize: '0.8125rem' }}
+                      style={{ minHeight: '44px', padding: '0.4rem 1.25rem', fontSize: '0.8125rem', fontWeight: 700 }}
                       onClick={() => handleAppendLocation(locationInput)}
                       disabled={!locationInput.trim()}
                     >
@@ -1028,17 +1082,17 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                     </Button>
                   </div>
 
-                  {routingResult.suggestedLocations && (
+                  {(routingResult.suggestedLocations || routingResult.clarification?.suggestedLocations) && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--civic-text-muted)' }}>
                         {language === 'hi' ? 'त्वरित शहर चुनें:' : 'Quick locations:'}
                       </span>
-                      {routingResult.suggestedLocations.map(loc => (
+                      {(routingResult.suggestedLocations || routingResult.clarification?.suggestedLocations || []).map(loc => (
                         <button
                           key={loc}
                           type="button"
                           className="btn btn-tonal"
-                          style={{ minHeight: '32px', padding: '0.25rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
+                          style={{ minHeight: '36px', padding: '0.3rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
                           onClick={() => handleAppendLocation(loc)}
                         >
                           + {loc}
@@ -1049,8 +1103,8 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 </div>
               )}
 
-              {/* Domain suggestion chips for general ambiguity */}
-              {!routingResult.needsLocation && (
+              {/* Domain suggestion chips for general ambiguity without explicit options */}
+              {!routingResult.needsLocation && !routingResult.clarification?.options && (
                 <div style={{ marginTop: '0.875rem', display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-secondary)' }}>
                     {language === 'hi' ? 'सुझाए गए विषय जोड़ें:' : 'Add specific domain keyword:'}
@@ -1060,7 +1114,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                       key={sug}
                       type="button"
                       className="btn btn-tonal"
-                      style={{ minHeight: '32px', padding: '0.25rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
+                      style={{ minHeight: '36px', padding: '0.3rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#FFFFFF', border: '1px solid var(--civic-border-medium)' }}
                       onClick={() => {
                         const updated = text ? `${text} (${sug})` : sug;
                         setText(updated);

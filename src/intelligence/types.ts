@@ -104,6 +104,20 @@ export interface CandidateEntityMatch {
 }
 
 export type RoutingStatus = 'MATCHED' | 'NEEDS_REVIEW' | 'UNCATEGORIZED';
+export type RoutingOutcomeKind = 'ROUTED' | 'NEEDS_INFORMATION' | 'ERROR';
+
+export interface ClarificationOption {
+  label: string;
+  querySuffix: string;
+}
+
+export interface RoutingClarification {
+  question: string;
+  reason: string;
+  type: 'LOCATION' | 'SERVICE_DOMAIN' | 'DOCUMENT_TYPE';
+  options?: ClarificationOption[];
+  suggestedLocations?: string[];
+}
 
 export interface DocumentEvidenceItem {
   documentId: string;
@@ -127,6 +141,7 @@ export interface DocumentEvidenceSummary {
 }
 
 export interface RoutingRecommendation {
+  outcomeKind: RoutingOutcomeKind;
   queryText: string;
   status: RoutingStatus;
   detectedCategory: string;
@@ -144,6 +159,7 @@ export interface RoutingRecommendation {
   explanations?: string[];
   needsLocation?: boolean;
   suggestedLocations?: string[];
+  clarification?: RoutingClarification;
 }
 
 export interface SystemMetadata {

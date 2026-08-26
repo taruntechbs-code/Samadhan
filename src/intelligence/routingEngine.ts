@@ -4,7 +4,7 @@
  * Supports multi-script matching (English & Hindi), ambiguous query handling, and zero-fabrication safety.
  */
 
-import { RoutingRecommendation, CandidateEntityMatch, RoutingStatus } from './types';
+import { RoutingRecommendation, CandidateEntityMatch, RoutingStatus, RoutingOutcomeKind } from './types';
 
 interface RoutingCategoryRule {
   category: string;
@@ -217,6 +217,20 @@ function matchesKeyword(text: string, keyword: string): boolean {
 }
 
 /**
+ * Detects whether query text refers to ambiguous document processing without ministry/service specifics.
+ */
+function isDocumentProcessingAmbiguity(normalized: string): boolean {
+  return /documents? (?:have )?not (?:been )?processed|documents? pending|documents? not verified|documents? rejected without reason|dastavej process|दस्तावेज प्रोसेस/i.test(normalized);
+}
+
+/**
+ * Detects whether query text refers to generic government website/portal issues without naming the service.
+ */
+function isWebsitePortalAmbiguity(normalized: string): boolean {
+  return /problem with (?:the )?government website|government website problem|government portal problem|problem with website|website not working|portal not working|portal login problem|portal error|सरकारी वेबसाइट काम नहीं कर रही|वेबसाइट में समस्या/i.test(normalized);
+}
+
+/**
  * Detects whether query text is deliberately vague or ambiguous without actionable specifics.
  */
 function isVagueQuery(normalized: string): boolean {
@@ -277,6 +291,7 @@ export function routeGrievanceText(
 
   if (!combinedContext || combinedContext.trim() === '') {
     return {
+      outcomeKind: 'NEEDS_INFORMATION',
       queryText: queryText || '',
       status: 'UNCATEGORIZED',
       detectedCategory: 'Unclassified',
@@ -294,12 +309,73 @@ export function routeGrievanceText(
   const normalized = sanitized.toLowerCase().trim();
   const normalizedCombined = combinedContext.toLowerCase().trim();
 
-  // Check for deliberately vague or generic complaints when no helpful document evidence is present
-  if (isVagueQuery(normalized) && (!docEvidence || !docEvidence.hasConvergence || docEvidence.convergedDomain === null)) {
+  // 1. Ambiguous Document Processing
+  if (isDocumentProcessingAmbiguity(normalized) && (!docEvidence || !docEvidence.hasConvergence)) {
     return {
+      outcomeKind: 'NEEDS_INFORMATION',
       queryText,
       status: 'NEEDS_REVIEW',
-      detectedCategory: 'General / Missing Specifics',
+      detectedCategory: 'Documentation & Citizen Services',
+      recommendedEntity: null,
+      confidence: 0,
+      matchReason: 'Grievance mentions unprocessed documents without identifying the specific public service, scheme, or department.',
+      missingInfoGuidance: 'What type of document or government service is involved? Please choose a service category below or specify the department.',
+      alternativeCandidates: [],
+      disclaimer: ROUTING_DISCLAIMER,
+      documentEvidence: docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined,
+      clarification: {
+        question: 'What type of document or government service is involved?',
+        reason: 'Document processing spans multiple ministries (Income Tax PAN cards, EPFO claims, Passports, Land Registry, Ayushman cards). Selecting the service enables accurate statutory routing without guessing.',
+        type: 'DOCUMENT_TYPE',
+        options: [
+          { label: 'Income Tax / PAN Card', querySuffix: 'Income Tax PAN card document processing' },
+          { label: 'EPFO / PF Transfer', querySuffix: 'EPFO PF transfer claim documents' },
+          { label: 'Passport / Visa', querySuffix: 'Passport Seva verification documents' },
+          { label: 'Aadhaar / UIDAI', querySuffix: 'Aadhaar update documents' },
+          { label: 'Land & Revenue Records', querySuffix: 'Land registry and revenue documents' },
+          { label: 'Healthcare / Ayushman', querySuffix: 'Ayushman Bharat card documents' },
+        ],
+      },
+    };
+  }
+
+  // 2. Ambiguous Government Website / Portal
+  if (isWebsitePortalAmbiguity(normalized) && (!docEvidence || !docEvidence.hasConvergence)) {
+    return {
+      outcomeKind: 'NEEDS_INFORMATION',
+      queryText,
+      status: 'NEEDS_REVIEW',
+      detectedCategory: 'Online Portal & Web Services',
+      recommendedEntity: null,
+      confidence: 0,
+      matchReason: 'Grievance reports a technical issue with a government portal, but does not specify which department portal is affected.',
+      missingInfoGuidance: 'Which government service or website are you having trouble with? Please select the affected portal below.',
+      alternativeCandidates: [],
+      disclaimer: ROUTING_DISCLAIMER,
+      documentEvidence: docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined,
+      clarification: {
+        question: 'Which government service or website are you having trouble with?',
+        reason: 'Different public authorities operate distinct digital infrastructure. Identifying the service ensures correct allocation.',
+        type: 'SERVICE_DOMAIN',
+        options: [
+          { label: 'Income Tax e-Filing Portal', querySuffix: 'Income Tax e-Filing portal issue' },
+          { label: 'EPFO Member / UAN Portal', querySuffix: 'EPFO UAN portal login issue' },
+          { label: 'Passport Seva Portal', querySuffix: 'Passport Seva portal error' },
+          { label: 'IRCTC Railway Booking', querySuffix: 'IRCTC train booking portal issue' },
+          { label: 'PM-Kisan Portal', querySuffix: 'PM-Kisan DBT website issue' },
+          { label: 'National Health Portal', querySuffix: 'National Health Portal Ayushman error' },
+        ],
+      },
+    };
+  }
+
+  // 3. Deliberately vague or generic complaints
+  if (isVagueQuery(normalized) && (!docEvidence || !docEvidence.hasConvergence || docEvidence.convergedDomain === null)) {
+    return {
+      outcomeKind: 'NEEDS_INFORMATION',
+      queryText,
+      status: 'NEEDS_REVIEW',
+      detectedCategory: 'General Administrative / Missing Specifics',
       recommendedEntity: null,
       confidence: 0,
       matchReason: 'Grievance description contains general distress without specific department, scheme, or service identifiers.',
@@ -307,6 +383,19 @@ export function routeGrievanceText(
       alternativeCandidates: [],
       disclaimer: ROUTING_DISCLAIMER,
       documentEvidence: docEvidence ? formatDocEvidenceSummary(docEvidence) : undefined,
+      clarification: {
+        question: 'Which public department or service do you need assistance with?',
+        reason: 'General grievance descriptions require department or scheme context for statutory routing.',
+        type: 'SERVICE_DOMAIN',
+        options: [
+          { label: 'Income Tax & Refunds', querySuffix: 'Income Tax department refund issue' },
+          { label: 'EPFO & Pensions', querySuffix: 'EPFO provident fund pension issue' },
+          { label: 'Railways & IRCTC', querySuffix: 'Indian Railways train passenger service issue' },
+          { label: 'Banking & Financial', querySuffix: 'Banking transaction dispute issue' },
+          { label: 'Civic Sanitation & Municipal', querySuffix: 'Local municipal civic sanitation issue' },
+          { label: 'Healthcare & Hospitals', querySuffix: 'Public healthcare and hospital issue' },
+        ],
+      },
     };
   }
 
@@ -341,6 +430,7 @@ export function routeGrievanceText(
 
   if (!bestMatch || bestScore === 0) {
     return {
+      outcomeKind: 'NEEDS_INFORMATION',
       queryText,
       status: 'UNCATEGORIZED',
       detectedCategory: 'General Administrative / Uncategorized',
@@ -351,6 +441,19 @@ export function routeGrievanceText(
       alternativeCandidates: [],
       disclaimer: ROUTING_DISCLAIMER,
       documentEvidence: formattedDocSummary,
+      clarification: {
+        question: 'Which public department or service do you need assistance with?',
+        reason: 'No statutory public department could be matched with certainty from the given keywords.',
+        type: 'SERVICE_DOMAIN',
+        options: [
+          { label: 'Income Tax & Refunds', querySuffix: 'Income Tax department refund issue' },
+          { label: 'EPFO & Pensions', querySuffix: 'EPFO provident fund pension issue' },
+          { label: 'Railways & IRCTC', querySuffix: 'Indian Railways train passenger service issue' },
+          { label: 'Banking & Financial', querySuffix: 'Banking transaction dispute issue' },
+          { label: 'Civic Sanitation & Municipal', querySuffix: 'Local municipal civic sanitation issue' },
+          { label: 'Healthcare & Hospitals', querySuffix: 'Public healthcare and hospital issue' },
+        ],
+      },
     };
   }
 
@@ -362,6 +465,7 @@ export function routeGrievanceText(
   let suggestedLocations: string[] | undefined = undefined;
   let customMatchReason = '';
   let explanations: string[] = [];
+  let clarification: any = undefined;
 
   const primaryMatchInfo = matchScores.find(m => m.rule.category === bestMatch!.category);
   const matchedKwStr = primaryMatchInfo?.matchedKeywords.join(', ') || 'relevant topics';
@@ -419,6 +523,12 @@ export function routeGrievanceText(
         'Under the 74th Constitutional Amendment, civic sanitation is the statutory responsibility of local Urban Local Bodies.',
         'City or municipality name is required to assign the exact local municipal corporation.',
       ];
+      clarification = {
+        question: 'Which city or municipality is this in?',
+        reason: 'Civic sanitation and municipal solid waste complaints are resolved by local Urban Local Bodies (ULBs) under the 74th Constitutional Amendment.',
+        type: 'LOCATION',
+        suggestedLocations,
+      };
     }
   } else {
     // Standard Central / State domains
@@ -446,6 +556,7 @@ export function routeGrievanceText(
 
   const confidence = Number(rawConfidence.toFixed(2));
   const status: RoutingStatus = (confidence >= 0.5 && recommendedEntity !== null) ? 'MATCHED' : 'NEEDS_REVIEW';
+  const outcomeKind: RoutingOutcomeKind = (confidence >= 0.5 && recommendedEntity !== null) ? 'ROUTED' : 'NEEDS_INFORMATION';
 
   const alternatives: CandidateEntityMatch[] = [];
   
@@ -476,6 +587,7 @@ export function routeGrievanceText(
   const facilityQuery = docEvidence?.facilityLocationQuery || (isHealthcare ? queryText : undefined);
 
   return {
+    outcomeKind,
     queryText,
     status,
     detectedCategory: bestMatch.category,
@@ -495,6 +607,7 @@ export function routeGrievanceText(
     explanations,
     needsLocation,
     suggestedLocations,
+    clarification,
   };
 }
 

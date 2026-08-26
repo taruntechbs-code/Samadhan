@@ -828,11 +828,58 @@ html, body {
 .composer-toolbar {
   border-top: 1px solid var(--civic-border-light);
   background-color: var(--civic-canvas-subtle);
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.composer-analyze-cta {
+  min-height: 44px;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  background-color: var(--civic-brand);
+  color: #FFFFFF;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.composer-analyze-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--civic-border-medium);
+  color: var(--civic-text-muted);
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .composer-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem 0.85rem !important;
+  }
+  
+  .composer-toolbar > div:first-child {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+  
+  .composer-analyze-cta {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+    font-size: 0.9375rem !important;
+  }
 }
 

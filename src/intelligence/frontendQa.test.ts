@@ -210,4 +210,92 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
       expect(rec.detectedCategory).toBe('Income Tax & Direct Taxation');
     });
   });
+
+  // 8. Phase 14.4 Critical Intake Intelligence UX & Ambiguity Test Suite (Cases A - H)
+  describe('Phase 14.4 Critical Intake Intelligence UX & Ambiguity Verification', () => {
+    // CASE A: Income Tax Refund
+    it('Case A: routes Income Tax refund grievance to CBDT with outcomeKind ROUTED', () => {
+      const rec = routeGrievanceText('My income tax refund has not been credited to my bank account for six months despite e-filing.');
+      expect(rec.outcomeKind).toBe('ROUTED');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+      expect(rec.detectedCategory).toBe('Income Tax & Direct Taxation');
+      expect(rec.confidence).toBeGreaterThanOrEqual(0.7);
+    });
+
+    // CASE B: EPFO PF Balance
+    it('Case B: routes EPFO PF balance grievance to Labour and Employment with outcomeKind ROUTED', () => {
+      const rec = routeGrievanceText('My PF balance has not been updated.');
+      expect(rec.outcomeKind).toBe('ROUTED');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Labour and Employment');
+      expect(rec.detectedCategory).toBe('Labour, EPFO & Pensions');
+    });
+
+    // CASE C: Local Civic Sanitation Ambiguity
+    it('Case C: flags unlocated garbage grievance as NEEDS_INFORMATION with location question', () => {
+      const rec = routeGrievanceText('Garbage has not been collected in my area.');
+      expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+      expect(rec.status).toBe('NEEDS_REVIEW');
+      expect(rec.recommendedEntity).toBeNull();
+      expect(rec.needsLocation).toBe(true);
+      expect(rec.clarification?.type).toBe('LOCATION');
+      expect(rec.clarification?.question).toContain('Which city or municipality');
+      expect(rec.clarification?.suggestedLocations && rec.clarification.suggestedLocations.length).toBeGreaterThanOrEqual(4);
+    });
+
+    // CASE D: Kurnool Sanitation with Location
+    it('Case D: routes Kurnool sanitation grievance to Local Municipal Authority under 74th Amendment', () => {
+      const rec = routeGrievanceText('Garbage has not been collected for 7 days in Kurnool, Andhra Pradesh, and waste is accumulating near my street.');
+      expect(rec.outcomeKind).toBe('ROUTED');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Local Municipal Authority (Kurnool, Andhra Pradesh)');
+      expect(rec.jurisdictionLevel).toBe('LOCAL_MUNICIPAL');
+      expect(rec.explanations && rec.explanations.some(e => e.includes('74th Constitutional Amendment'))).toBe(true);
+    });
+
+    // CASE E: Document Processing Ambiguity
+    it('Case E: flags unprocessed documents query as NEEDS_INFORMATION with document choices', () => {
+      const rec = routeGrievanceText('My documents have not been processed.');
+      expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+      expect(rec.status).toBe('NEEDS_REVIEW');
+      expect(rec.recommendedEntity).toBeNull();
+      expect(rec.clarification?.type).toBe('DOCUMENT_TYPE');
+      expect(rec.clarification?.question).toBe('What type of document or government service is involved?');
+      expect(rec.clarification?.options && rec.clarification.options.length).toBeGreaterThanOrEqual(4);
+      expect(rec.clarification?.options?.some(o => o.label.includes('Income Tax'))).toBe(true);
+      expect(rec.clarification?.options?.some(o => o.label.includes('EPFO'))).toBe(true);
+    });
+
+    // CASE F: Government Website / Portal Ambiguity
+    it('Case F: flags government website problem as NEEDS_INFORMATION with portal choices', () => {
+      const rec = routeGrievanceText('I have a problem with the government website.');
+      expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+      expect(rec.status).toBe('NEEDS_REVIEW');
+      expect(rec.recommendedEntity).toBeNull();
+      expect(rec.clarification?.type).toBe('SERVICE_DOMAIN');
+      expect(rec.clarification?.question).toBe('Which government service or website are you having trouble with?');
+      expect(rec.clarification?.options && rec.clarification.options.length).toBeGreaterThanOrEqual(4);
+      expect(rec.clarification?.options?.some(o => o.label.includes('Income Tax'))).toBe(true);
+      expect(rec.clarification?.options?.some(o => o.label.includes('EPFO'))).toBe(true);
+    });
+
+    // CASE G: Hindi PF Balance
+    it('Case G: routes Hindi PF balance query to Labour and Employment with outcomeKind ROUTED', () => {
+      const rec = routeGrievanceText('Mera PF balance abhi tak update nahi hua hai.');
+      expect(rec.outcomeKind).toBe('ROUTED');
+      expect(rec.status).toBe('MATCHED');
+      expect(rec.recommendedEntity).toBe('Labour and Employment');
+    });
+
+    // CASE H: Hindi Unlocated Sanitation
+    it('Case H: flags Hindi unlocated sanitation grievance as NEEDS_INFORMATION with location clarification', () => {
+      const rec = routeGrievanceText('मेरे इलाके में पिछले एक हफ्ते से कूड़ा नहीं उठाया गया है।');
+      expect(rec.outcomeKind).toBe('NEEDS_INFORMATION');
+      expect(rec.status).toBe('NEEDS_REVIEW');
+      expect(rec.recommendedEntity).toBeNull();
+      expect(rec.needsLocation).toBe(true);
+      expect(rec.clarification?.type).toBe('LOCATION');
+    });
+  });
 });
