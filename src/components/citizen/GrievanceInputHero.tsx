@@ -7,6 +7,7 @@ import { useTranslation } from '../../i18n';
 import { FacilityContextCard } from './FacilityContextCard';
 import { EvidenceViewerModal } from './EvidenceViewerModal';
 import { ClarificationModal } from './ClarificationModal';
+import { NodalOfficerCard } from './NodalOfficerCard';
 import { getSpeechProvider, SpeechRecognitionProvider } from '../../services/speechService';
 import { parseDocument, validateFile, ExtractedDocument, MAX_FILES_ALLOWED } from '../../intelligence';
 import {
@@ -909,6 +910,14 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               </span>
             </div>
           )}
+
+          {/* Verified CPGRAMS Nodal Grievance Contact */}
+          <NodalOfficerCard
+            officer={routingResult.nodalOfficer}
+            authorityName={routingResult.recommendedEntity}
+            jurisdictionLevel={routingResult.jurisdictionLevel}
+            queryText={text}
+          />
 
           {/* Alternative Candidates */}
           {routingResult.alternativeCandidates && routingResult.alternativeCandidates.length > 0 && (

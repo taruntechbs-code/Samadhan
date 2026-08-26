@@ -5,6 +5,7 @@
  */
 
 import { RoutingRecommendation, CandidateEntityMatch, RoutingStatus, RoutingOutcomeKind } from './types';
+import { findNodalOfficer, NodalGrievanceOfficer } from '../data/cpgramsNodalOfficers';
 
 interface RoutingCategoryRule {
   category: string;
@@ -598,6 +599,15 @@ export function routeGrievanceText(
 
   const facilityQuery = docEvidence?.facilityLocationQuery || (isHealthcare ? queryText : undefined);
 
+  let nodalOfficer: NodalGrievanceOfficer | null = null;
+  if (outcomeKind === 'ROUTED' && recommendedEntity) {
+    const officerMatch = findNodalOfficer(recommendedEntity, {
+      jurisdictionLevel,
+      queryText: normalizedCombined,
+    });
+    nodalOfficer = officerMatch.officer;
+  }
+
   return {
     outcomeKind,
     queryText,
@@ -620,6 +630,7 @@ export function routeGrievanceText(
     needsLocation,
     suggestedLocations,
     clarification,
+    nodalOfficer: nodalOfficer ?? undefined,
   };
 }
 

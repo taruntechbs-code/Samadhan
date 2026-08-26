@@ -6,3 +6,4 @@ export * from './types';
 export * from './csvLoader';
 export * from './transformer';
 export * from './analytics';
+export * from './cpgramsNodalOfficers';

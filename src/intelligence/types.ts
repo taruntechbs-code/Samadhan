@@ -140,6 +140,8 @@ export interface DocumentEvidenceSummary {
   strengthenedCategory?: string;
 }
 
+import { NodalGrievanceOfficer } from '../data/cpgramsNodalOfficers';
+
 export interface RoutingRecommendation {
   outcomeKind: RoutingOutcomeKind;
   queryText: string;
@@ -160,6 +162,7 @@ export interface RoutingRecommendation {
   needsLocation?: boolean;
   suggestedLocations?: string[];
   clarification?: RoutingClarification;
+  nodalOfficer?: NodalGrievanceOfficer | null;
 }
 
 export interface SystemMetadata {
