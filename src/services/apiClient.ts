@@ -384,17 +384,21 @@ const SAMPLE_GRIEVANCES: CitizenGrievanceRecord[] = [
   },
 ];
 
+let memoryGrievances: CitizenGrievanceRecord[] = [...SAMPLE_GRIEVANCES];
+
 export function getStoredCitizenGrievances(): CitizenGrievanceRecord[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     }
   } catch {}
-  return SAMPLE_GRIEVANCES;
+  return memoryGrievances;
 }
 
 export function saveCitizenGrievance(
@@ -439,8 +443,11 @@ export function saveCitizenGrievance(
   };
 
   const updated = [newRecord, ...existing];
+  memoryGrievances = updated;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    }
   } catch {}
 
   return newRecord;

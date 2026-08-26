@@ -210,14 +210,30 @@ function matchesKeyword(text: string, keyword: string): boolean {
 function isVagueQuery(normalized: string): boolean {
   const vaguePhrases = [
     'i have a problem with a government service and nobody is helping me',
+    'i have a problem with a government service',
+    'i have a problem with government',
+    'problem with government',
+    'i have a problem',
     'government problem',
     'help me please',
+    'help me',
+    'nobody helps',
     'nobody is helping me',
     'government service problem',
     'mera kaam nahi ho raha',
     'koi madad nahi kar raha',
     'kuch kaam nahi ho raha',
     'problem with service',
+    'meri madad kijiye',
+    'meri madad kare',
+    'koi sun nahi raha',
+    'shikayat hai',
+    'मेरी मदद कीजिए',
+    'मेरी मदद करें',
+    'कोई सुन नहीं रहा',
+    'कोई मदद नहीं कर रहा',
+    'शिकायत है',
+    'समस्या है',
   ];
 
   return vaguePhrases.some(vp => normalized.includes(vp));

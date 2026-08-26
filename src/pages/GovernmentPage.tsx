@@ -16,10 +16,10 @@ import {
   fetchEnrichedAttention,
   fetchSystemInsights,
   fetchAppealsOverview,
-} from '../../src/services/apiClient';
-import { SystemOverview, AppealsOverview } from '../../src/services/types';
-import { PeriodDepartmentMetrics } from '../../src/data/types';
-import { SystemInsight } from '../../src/intelligence/types';
+} from '../services/apiClient';
+import { SystemOverview, AppealsOverview } from '../services/types';
+import { PeriodDepartmentMetrics } from '../data/types';
+import { SystemInsight } from '../intelligence/types';
 import { useTranslation } from '../i18n';
 import {
   LayoutDashboard,

@@ -8,12 +8,13 @@ SAMADHAN is a civic-tech public grievance platform built for the **"Build What M
 
 ## 🌐 Live Demo & Deployment
 
-* **Public Live URL**: **[https://samadhan-hszx.onrender.com](https://samadhan-hszx.onrender.com)** (Render Web Service)
-* **API Health Check**: `https://samadhan-hszx.onrender.com/api/health`
-* **Dataset Verification**: `https://samadhan-hszx.onrender.com/api/datasets`
+* **Public Live URL**: **[https://samadhan-mquc.onrender.com](https://samadhan-mquc.onrender.com)** (Render Web Service)
+* **API Health Check**: `https://samadhan-mquc.onrender.com/api/health`
+* **Dataset Verification**: `https://samadhan-mquc.onrender.com/api/datasets`
+* **Historical Trends**: `https://samadhan-mquc.onrender.com/api/historical/trends?limit=3`
 
 > [!NOTE]
-> **Free Tier Spin-Down**: The demo is deployed on Render's free tier and may take 30–50 seconds to spin up on initial access after periods of inactivity.
+> **Free Tier Spin-Down**: The demo is deployed on Render's web tier and may take 30–50 seconds to spin up on initial access after periods of inactivity.
 >
 > **Prototype Disclosure**: SAMADHAN is an independent civic-tech innovation demo. Submissions generate local demo reference records and do not transmit data to official government endpoints without explicit authorization.
 
@@ -36,8 +37,9 @@ npm start
 
 ### 3. Automated Verification & Tests
 ```powershell
-npm test -- --run     # 142 Unit & Integration Tests (100% Passing)
-npm run test:api       # 44 API Endpoint Tests (100% Passing)
+npm run typecheck     # 0 TypeScript Errors (App, Node, and Test projects)
+npm test -- --run     # 162 Unit & Integration Tests across 11 files (100% Passing)
+npm run test:api       # 44 API Endpoint Integration Tests (100% Passing)
 npm run verify         # 11 CPGRAMS Real Dataset Checks (2,134 Rows Verified)
 ```
 

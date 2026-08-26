@@ -29,6 +29,18 @@ export const GrievanceSubmitModal: React.FC<GrievanceSubmitModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRecord, setSubmittedRecord] = useState<CitizenGrievanceRecord | null>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !routing) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
