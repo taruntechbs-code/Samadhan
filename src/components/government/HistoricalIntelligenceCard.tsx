@@ -261,26 +261,27 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
             )}
 
             {/* Filter Chips */}
-            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <div className="mobile-scroll-strip" style={{ gap: '0.35rem', marginBottom: '1rem' }}>
               {(['ALL', 'IMPROVING', 'STABLE', 'DETERIORATING'] as const).map(f => (
                 <button
                   key={f}
                   type="button"
                   className="btn"
                   style={{
-                    minHeight: '30px',
-                    padding: '0.2rem 0.75rem',
+                    minHeight: '34px',
+                    padding: '0.3rem 0.85rem',
                     fontSize: '0.75rem',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: filter === f ? 'var(--civic-brand-light)' : '#FFFFFF',
                     color: filter === f ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
                     border: filter === f ? '1px solid var(--civic-brand-border)' : '1px solid var(--civic-border-light)',
                     fontWeight: filter === f ? 700 : 500,
+                    whiteSpace: 'nowrap',
                   }}
                   onClick={() => setFilter(f)}
                 >
                   {f === 'ALL'
-                    ? (language === 'hi' ? `सभी प्राधिकरण (${trends.length})` : `All Authorities (${trends.length})`)
+                    ? (language === 'hi' ? `सभी (${trends.length})` : `All (${trends.length})`)
                     : f === 'IMPROVING'
                     ? (language === 'hi' ? `सुधार (${overview?.improvingCount ?? 0})` : `Improving (${overview?.improvingCount ?? 0})`)
                     : f === 'STABLE'
@@ -290,8 +291,8 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
               ))}
             </div>
 
-            {/* Longitudinal Ministry Comparison Table */}
-            <div style={{ overflowX: 'auto' }}>
+            {/* Desktop View: Longitudinal Ministry Comparison Table */}
+            <div className="desktop-only civic-table-container">
               <table className="civic-table">
                 <thead>
                   <tr>
@@ -342,7 +343,7 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
                               type="button"
                               className="btn btn-text"
                               style={{
-                                minHeight: 'auto',
+                                minHeight: '36px',
                                 padding: '0.25rem 0.6rem',
                                 fontSize: '0.75rem',
                                 color: 'var(--civic-brand)',
@@ -361,6 +362,87 @@ export const HistoricalIntelligenceCard: React.FC<HistoricalIntelligenceCardProp
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View: Scannable Historical Cards */}
+            <div className="mobile-only" style={{ flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+              {filteredTrends.slice(0, 25).map((item, idx) => {
+                const entityName = item.entity || 'Unknown Authority';
+                const currentStr = formatPercentage(item.currentDisposalRate);
+                const histStr = item.hasHistoricalBaseline && item.historicalDisposalRate != null
+                  ? formatPercentage(item.historicalDisposalRate)
+                  : (language === 'hi' ? 'सीमित इतिहास' : '—');
+                const deltaStr = formatDeltaPp(item.varianceDisposalRate, item.hasHistoricalBaseline);
+
+                return (
+                  <div
+                    key={item.entity || idx}
+                    style={{
+                      backgroundColor: 'var(--civic-canvas-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.875rem 1rem',
+                      border: '1px solid var(--civic-border-light)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--civic-text-primary)' }}>
+                        {entityName}
+                      </span>
+                      {getTrendBadge(item.trend, item.varianceDisposalRate, item.hasHistoricalBaseline)}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', paddingTop: '0.35rem', borderTop: '1px solid rgba(203, 213, 225, 0.4)' }}>
+                      <div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--civic-text-muted)' }}>{language === 'hi' ? 'वर्तमान (2026)' : 'Current'}</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--civic-text-primary)' }}>{currentStr}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--civic-text-muted)' }}>{language === 'hi' ? '10-Yr आधार' : '10-Yr Base'}</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--civic-text-muted)' }}>{histStr}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--civic-text-muted)' }}>{language === 'hi' ? 'विचलन' : 'Delta'}</div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            color:
+                              item.hasHistoricalBaseline && item.varianceDisposalRate != null
+                                ? item.varianceDisposalRate >= 0
+                                  ? 'var(--civic-success)'
+                                  : 'var(--civic-danger)'
+                                : 'var(--civic-text-muted)',
+                          }}
+                        >
+                          {deltaStr}
+                        </div>
+                      </div>
+                    </div>
+
+                    {onSelectDepartment && (
+                      <button
+                        type="button"
+                        className="btn btn-tonal"
+                        style={{
+                          width: '100%',
+                          minHeight: '38px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          color: 'var(--civic-brand)',
+                          backgroundColor: '#FFFFFF',
+                          marginTop: '0.25rem',
+                        }}
+                        onClick={() => onSelectDepartment(entityName)}
+                      >
+                        {language === 'hi' ? 'ऐतिहासिक विश्लेषण देखें →' : 'Inspect Longitudinal Record →'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </>
         ) : (

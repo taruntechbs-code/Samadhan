@@ -77,9 +77,9 @@ export const TrackPage: React.FC = () => {
             e.preventDefault();
             handleSearch(query);
           }}
-          style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '540px', marginTop: '0.5rem' }}
+          style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '540px', marginTop: '0.5rem', flexWrap: 'wrap' }}
         >
-          <div style={{ position: 'relative', flex: 1 }}>
+          <div style={{ position: 'relative', flex: '1 1 220px' }}>
             <input
               type="text"
               required
@@ -87,10 +87,11 @@ export const TrackPage: React.FC = () => {
               style={{
                 minHeight: '46px',
                 paddingLeft: '2.5rem',
-                fontSize: '0.9375rem',
+                fontSize: '1rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
+                width: '100%',
               }}
               placeholder="e.g. SAM-2026-1042"
               value={query}
@@ -99,31 +100,40 @@ export const TrackPage: React.FC = () => {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--civic-text-muted)' }} />
           </div>
 
-          <Button type="submit" variant="filled" style={{ minHeight: '46px', padding: '0.5rem 1.25rem' }}>
+          <Button type="submit" variant="filled" style={{ minHeight: '46px', padding: '0.5rem 1.25rem', flex: '0 0 auto' }}>
             <span>{language === 'hi' ? 'स्थिति खोजें' : 'Track Status'}</span>
           </Button>
         </form>
 
         {/* Quick Sample Reference Chips */}
         {sampleList.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600 }}>
-              {language === 'hi' ? 'नमूना संदर्भ:' : 'Sample references:'}
-            </span>
-            {sampleList.map(s => (
-              <button
-                key={s.id}
-                type="button"
-                className="chip chip-secondary"
-                style={{ cursor: 'pointer', border: '1px solid var(--civic-border-light)', fontSize: '0.75rem' }}
-                onClick={() => {
-                  setQuery(s.id);
-                  handleSearch(s.id);
-                }}
-              >
-                {s.id} ({s.category.split(' ')[0]})
-              </button>
-            ))}
+          <div style={{ width: '100%', marginTop: '0.25rem' }}>
+            <div
+              className="mobile-scroll-strip"
+              style={{
+                justifyContent: 'center',
+                gap: '0.45rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600, alignSelf: 'center' }}>
+                {language === 'hi' ? 'नमूना संदर्भ:' : 'Sample:'}
+              </span>
+              {sampleList.map(s => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className="chip chip-secondary"
+                  style={{ cursor: 'pointer', border: '1px solid var(--civic-border-light)', fontSize: '0.75rem', minHeight: '32px', whiteSpace: 'nowrap' }}
+                  onClick={() => {
+                    setQuery(s.id);
+                    handleSearch(s.id);
+                  }}
+                >
+                  {s.id} ({s.category.split(' ')[0]})
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

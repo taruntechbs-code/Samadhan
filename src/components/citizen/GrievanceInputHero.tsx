@@ -265,15 +265,39 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             </span>
           </div>
 
-          <h1 className="display-large" style={{ color: 'var(--civic-text-primary)', margin: 0 }}>
+          <h1
+            className="display-large"
+            style={{
+              color: 'var(--civic-text-primary)',
+              margin: 0,
+              fontSize: 'clamp(1.65rem, 4.5vw, 2.75rem)',
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+            }}
+          >
             {language === 'hi' ? (
-              <>आपकी समस्या। सही प्राधिकरण। <br /><span style={{ color: 'var(--civic-brand)' }}>निवारण का स्पष्ट मार्ग।</span></>
+              <>
+                <span>आपकी समस्या। सही प्राधिकरण।</span>{' '}
+                <span style={{ color: 'var(--civic-brand)', display: 'inline-block' }}>निवारण का स्पष्ट मार्ग।</span>
+              </>
             ) : (
-              <>Your problem. The right authority. <br /><span style={{ color: 'var(--civic-brand)' }}>A clearer path to resolution.</span></>
+              <>
+                <span>Your problem. The right authority.</span>{' '}
+                <span style={{ color: 'var(--civic-brand)', display: 'inline-block' }}>A clearer path to resolution.</span>
+              </>
             )}
           </h1>
 
-          <p className="body-large" style={{ color: 'var(--civic-text-secondary)', maxWidth: '680px', margin: 0 }}>
+          <p
+            className="body-large"
+            style={{
+              color: 'var(--civic-text-secondary)',
+              maxWidth: '680px',
+              margin: 0,
+              fontSize: 'clamp(0.875rem, 2vw, 1.05rem)',
+              lineHeight: 1.5,
+            }}
+          >
             {language === 'hi'
               ? 'अपनी शिकायत अपने शब्दों में लिखें या बोलें। समाधान उपयुक्त लोक प्राधिकरण की पहचान करता है, कारण स्पष्ट करता है, और सिफारिश के पीछे का डेटा साक्ष्य प्रस्तुत करता है।'
               : 'Describe your grievance in your own words or speak naturally. SAMADHAN identifies the appropriate public authority, explains why, and provides explainable evidence.'}
@@ -533,27 +557,39 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
           )}
 
           {/* Quick Example Starters */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', justifyContent: 'center', width: '100%', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', alignSelf: 'center', marginRight: '0.25rem', fontWeight: 600 }}>
-              {language === 'hi' ? 'त्वरित उदाहरण:' : 'Quick examples:'}
-            </span>
-            {QUICK_STARTERS.map((qs, i) => (
-              <button
-                key={i}
-                type="button"
-                className="btn btn-tonal"
-                style={{
-                  minHeight: '30px',
-                  padding: '0.25rem 0.65rem',
-                  fontSize: '0.75rem',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid var(--civic-border-light)',
-                }}
-                onClick={() => setText(qs)}
-              >
-                {qs.split(' ').slice(0, 3).join(' ')}...
-              </button>
-            ))}
+          <div style={{ width: '100%', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600 }}>
+                {language === 'hi' ? 'त्वरित उदाहरण:' : 'Quick examples:'}
+              </span>
+            </div>
+            <div
+              className="mobile-scroll-strip"
+              style={{
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '0.45rem',
+              }}
+            >
+              {QUICK_STARTERS.map((qs, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="btn btn-tonal"
+                  style={{
+                    minHeight: '34px',
+                    padding: '0.3rem 0.75rem',
+                    fontSize: '0.75rem',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid var(--civic-border-light)',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onClick={() => setText(qs)}
+                >
+                  {qs.split(' ').slice(0, 3).join(' ')}...
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -565,12 +601,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
           style={{
             border: '1.5px solid var(--civic-brand-border)',
             background: '#FFFFFF',
-            padding: '1.5rem',
+            padding: '1.25rem',
           }}
         >
           {/* Header Banner */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--civic-border-light)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span className="chip chip-primary" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
                 {language === 'hi' ? 'शिकायत का विश्लेषण' : 'UNDERSTANDING YOUR GRIEVANCE'}
               </span>
@@ -594,12 +630,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
+            <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '10px',
                   backgroundColor: 'var(--civic-brand-light)',
                   color: 'var(--civic-brand-dark)',
                   display: 'flex',
@@ -608,15 +644,15 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Building2 size={24} />
+                <Building2 size={22} />
               </div>
 
-              <div>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   {language === 'hi' ? 'पहचाना गया मुद्दा / श्रेणी' : 'Detected Issue'}: <strong style={{ color: 'var(--civic-text-primary)' }}>{routingResult.detectedCategory}</strong>
                 </div>
 
-                <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', marginTop: '0.2rem' }}>
+                <h2 className="title-large" style={{ color: 'var(--civic-text-primary)', marginTop: '0.2rem', fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', wordBreak: 'break-word' }}>
                   {routingResult.recommendedEntity}
                 </h2>
 
@@ -628,7 +664,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
 
             <Button
               variant="filled"
-              style={{ minHeight: '44px', padding: '0.65rem 1.35rem' }}
+              style={{ minHeight: '44px', padding: '0.65rem 1.35rem', width: 'auto' }}
               onClick={() => onOpenSubmitModal(routingResult, text)}
             >
               <span>{language === 'hi' ? 'इस विभाग में शिकायत दर्ज करें' : 'Lodge Grievance to this Authority'}</span>

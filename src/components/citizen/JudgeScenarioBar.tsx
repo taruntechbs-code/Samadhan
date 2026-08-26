@@ -129,36 +129,42 @@ export const JudgeScenarioBar: React.FC<JudgeScenarioBarProps> = ({
 
   return (
     <>
-      {/* Subtle Floating Evaluator Button (always available at bottom right for judges) */}
+      {/* Floating Evaluator Button (responsive, safe-area-aware) */}
       <button
         type="button"
-        className="btn btn-tonal"
+        className="btn btn-tonal evaluator-floating-btn"
         style={{
           position: 'fixed',
-          bottom: '20px',
-          right: '20px',
+          bottom: 'calc(14px + env(safe-area-inset-bottom, 0px))',
+          right: '14px',
           zIndex: 40,
-          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
-          border: '1px solid var(--civic-border-medium)',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+          border: '1.5px solid var(--civic-brand-border)',
           backgroundColor: '#FFFFFF',
-          padding: '0.5rem 0.9rem',
+          padding: '0.45rem 0.8rem',
           fontSize: '0.8125rem',
           fontWeight: 700,
           color: 'var(--civic-brand)',
           borderRadius: 'var(--radius-pill)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          minHeight: '44px',
         }}
         onClick={() => setInternalOpen(true)}
         title="Open Evaluator Demo Scenarios Console"
+        aria-label="Open Evaluator Demo Scenarios"
       >
-        <Sliders size={15} />
-        <span>{language === 'hi' ? 'मूल्यांकनकर्ता कंसोल' : 'Evaluator Scenarios'}</span>
+        <Sliders size={16} />
+        <span className="desktop-only">{language === 'hi' ? 'मूल्यांकनकर्ता कंसोल' : 'Evaluator Scenarios'}</span>
         <span
           style={{
             backgroundColor: 'var(--civic-brand-light)',
             color: 'var(--civic-brand-dark)',
-            padding: '0.1rem 0.4rem',
+            padding: '0.15rem 0.45rem',
             borderRadius: '10px',
-            fontSize: '0.6875rem',
+            fontSize: '0.75rem',
+            fontWeight: 800,
           }}
         >
           5
@@ -177,7 +183,7 @@ export const JudgeScenarioBar: React.FC<JudgeScenarioBarProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100,
-            padding: '1rem',
+            padding: '0.75rem',
           }}
           onClick={handleClose}
         >
@@ -186,7 +192,7 @@ export const JudgeScenarioBar: React.FC<JudgeScenarioBarProps> = ({
             style={{
               width: '100%',
               maxWidth: '840px',
-              maxHeight: '92vh',
+              maxHeight: '90vh',
               overflowY: 'auto',
               borderRadius: 'var(--radius-dialog)',
               boxShadow: 'var(--shadow-lg)',

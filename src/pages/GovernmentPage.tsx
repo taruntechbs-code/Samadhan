@@ -143,31 +143,43 @@ export const GovernmentPage: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-text-secondary)' }}>
             <Globe2 size={16} style={{ color: 'var(--civic-brand)' }} />
-            <span>{language === 'hi' ? 'भौगोलिक एवं प्रशासनिक दायरा:' : 'National Intelligence Scope:'}</span>
+            <span>{language === 'hi' ? 'प्रशासनिक दायरा:' : 'Scope:'}</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.35rem', backgroundColor: 'var(--civic-canvas-subtle)', padding: '0.2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--civic-border-light)' }}>
+          <div
+            className="mobile-scroll-strip"
+            style={{
+              gap: '0.35rem',
+              backgroundColor: 'var(--civic-canvas-subtle)',
+              padding: '0.2rem',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--civic-border-light)',
+              width: 'auto',
+              maxWidth: '100%',
+            }}
+          >
             {(['ALL', 'Department', 'State/UT'] as const).map(sc => (
               <button
                 key={sc}
                 type="button"
                 className="btn"
                 style={{
-                  minHeight: '32px',
-                  padding: '0.25rem 0.85rem',
+                  minHeight: '34px',
+                  padding: '0.3rem 0.85rem',
                   fontSize: '0.75rem',
                   borderRadius: 'var(--radius-sm)',
                   backgroundColor: scopeFilter === sc ? 'var(--civic-brand)' : 'transparent',
                   color: scopeFilter === sc ? '#FFFFFF' : 'var(--civic-text-secondary)',
                   border: 'none',
+                  whiteSpace: 'nowrap',
                 }}
                 onClick={() => setScopeFilter(sc)}
               >
                 {sc === 'ALL'
-                  ? (language === 'hi' ? 'अखिल भारतीय (127 निकाय)' : 'All-India (127 Entities)')
+                  ? (language === 'hi' ? 'अखिल भारतीय (127)' : 'All-India (127)')
                   : sc === 'Department'
-                  ? (language === 'hi' ? 'केंद्रीय मंत्रालय (88 विभाग)' : 'Central Ministries (88)')
-                  : (language === 'hi' ? 'राज्य एवं केंद्र शासित प्रदेश (39)' : 'States & UTs (39)')}
+                  ? (language === 'hi' ? 'केंद्रीय मंत्रालय (88)' : 'Central (88)')
+                  : (language === 'hi' ? 'राज्य / यूटी (39)' : 'States/UTs (39)')}
               </button>
             ))}
           </div>
@@ -176,14 +188,13 @@ export const GovernmentPage: React.FC = () => {
 
       {/* Main Cockpit Navigation Tabs */}
       <div
+        className="mobile-scroll-strip"
         style={{
-          display: 'flex',
           gap: '0.35rem',
           backgroundColor: '#FFFFFF',
           padding: '0.35rem',
           borderRadius: 'var(--radius-md)',
-          width: 'fit-content',
-          flexWrap: 'wrap',
+          width: '100%',
           border: '1px solid var(--civic-border-light)',
           boxShadow: 'var(--shadow-xs)',
         }}
@@ -192,13 +203,14 @@ export const GovernmentPage: React.FC = () => {
           type="button"
           className="btn"
           style={{
-            minHeight: '36px',
-            padding: '0.4rem 1rem',
+            minHeight: '40px',
+            padding: '0.4rem 0.9rem',
             fontSize: '0.8125rem',
             backgroundColor: activeTab === 'overview' ? 'var(--civic-brand-light)' : 'transparent',
             color: activeTab === 'overview' ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
             fontWeight: activeTab === 'overview' ? 700 : 500,
             border: activeTab === 'overview' ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+            whiteSpace: 'nowrap',
           }}
           onClick={() => setActiveTab('overview')}
         >
@@ -210,31 +222,33 @@ export const GovernmentPage: React.FC = () => {
           type="button"
           className="btn"
           style={{
-            minHeight: '36px',
-            padding: '0.4rem 1rem',
+            minHeight: '40px',
+            padding: '0.4rem 0.9rem',
             fontSize: '0.8125rem',
             backgroundColor: activeTab === 'attention' ? 'var(--civic-brand-light)' : 'transparent',
             color: activeTab === 'attention' ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
             fontWeight: activeTab === 'attention' ? 700 : 500,
             border: activeTab === 'attention' ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+            whiteSpace: 'nowrap',
           }}
           onClick={() => setActiveTab('attention')}
         >
           <ShieldAlert size={15} />
-          <span>{language === 'hi' ? 'कार्रवाई आवश्यक (एक्शन कॉकपिट)' : 'Attention Action Cockpit'} ({attentionItems.length})</span>
+          <span>{language === 'hi' ? 'एक्शन कॉकपिट' : 'Attention Action'} ({attentionItems.length})</span>
         </button>
 
         <button
           type="button"
           className="btn"
           style={{
-            minHeight: '36px',
-            padding: '0.4rem 1rem',
+            minHeight: '40px',
+            padding: '0.4rem 0.9rem',
             fontSize: '0.8125rem',
             backgroundColor: activeTab === 'leaderboard' ? 'var(--civic-brand-light)' : 'transparent',
             color: activeTab === 'leaderboard' ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
             fontWeight: activeTab === 'leaderboard' ? 700 : 500,
             border: activeTab === 'leaderboard' ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+            whiteSpace: 'nowrap',
           }}
           onClick={() => setActiveTab('leaderboard')}
         >
@@ -246,13 +260,14 @@ export const GovernmentPage: React.FC = () => {
           type="button"
           className="btn"
           style={{
-            minHeight: '36px',
-            padding: '0.4rem 1rem',
+            minHeight: '40px',
+            padding: '0.4rem 0.9rem',
             fontSize: '0.8125rem',
             backgroundColor: activeTab === 'appeals' ? 'var(--civic-brand-light)' : 'transparent',
             color: activeTab === 'appeals' ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
             fontWeight: activeTab === 'appeals' ? 700 : 500,
             border: activeTab === 'appeals' ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+            whiteSpace: 'nowrap',
           }}
           onClick={() => setActiveTab('appeals')}
         >
@@ -264,18 +279,19 @@ export const GovernmentPage: React.FC = () => {
           type="button"
           className="btn"
           style={{
-            minHeight: '36px',
-            padding: '0.4rem 1rem',
+            minHeight: '40px',
+            padding: '0.4rem 0.9rem',
             fontSize: '0.8125rem',
             backgroundColor: activeTab === 'historical' ? 'var(--civic-brand-light)' : 'transparent',
             color: activeTab === 'historical' ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
             fontWeight: activeTab === 'historical' ? 700 : 500,
             border: activeTab === 'historical' ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+            whiteSpace: 'nowrap',
           }}
           onClick={() => setActiveTab('historical')}
         >
           <History size={15} />
-          <span>{language === 'hi' ? '10-वर्षीय ऐतिहासिक रुझान' : 'Historical Trends (2016–2026)'}</span>
+          <span>{language === 'hi' ? '10-वर्षीय रुझान' : '10-Yr Trends'}</span>
         </button>
       </div>
 

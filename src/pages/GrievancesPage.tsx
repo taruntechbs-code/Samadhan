@@ -67,37 +67,37 @@ export const GrievancesPage: React.FC = () => {
 
       {/* Filter Tabs */}
       <div
+        className="mobile-scroll-strip"
         style={{
-          display: 'flex',
           gap: '0.35rem',
           backgroundColor: '#FFFFFF',
           padding: '0.35rem',
           borderRadius: 'var(--radius-md)',
-          width: 'fit-content',
-          flexWrap: 'wrap',
+          width: '100%',
           border: '1px solid var(--civic-border-light)',
           boxShadow: 'var(--shadow-xs)',
         }}
       >
         {[
           { key: 'ALL', label: `${language === 'hi' ? 'सभी' : 'All'} (${grievances.length})` },
-          { key: 'UNDER_REVIEW', label: language === 'hi' ? 'समीक्षाधीन (Under Review)' : 'Under Review' },
-          { key: 'IN_PROGRESS', label: language === 'hi' ? 'प्रगति पर (In Progress)' : 'In Progress' },
-          { key: 'RESOLVED', label: language === 'hi' ? 'निपटाया गया (Resolved)' : 'Resolved' },
+          { key: 'UNDER_REVIEW', label: language === 'hi' ? 'समीक्षाधीन' : 'Under Review' },
+          { key: 'IN_PROGRESS', label: language === 'hi' ? 'प्रगति पर' : 'In Progress' },
+          { key: 'RESOLVED', label: language === 'hi' ? 'निपटाया गया' : 'Resolved' },
         ].map(tab => (
           <button
             key={tab.key}
             type="button"
             className="btn"
             style={{
-              minHeight: '34px',
-              padding: '0.3rem 0.85rem',
+              minHeight: '38px',
+              padding: '0.35rem 0.85rem',
               fontSize: '0.8125rem',
               borderRadius: 'var(--radius-sm)',
               backgroundColor: statusFilter === tab.key ? 'var(--civic-brand-light)' : 'transparent',
               color: statusFilter === tab.key ? 'var(--civic-brand-dark)' : 'var(--civic-text-secondary)',
               fontWeight: statusFilter === tab.key ? 700 : 500,
               border: statusFilter === tab.key ? '1px solid var(--civic-brand-border)' : '1px solid transparent',
+              whiteSpace: 'nowrap',
             }}
             onClick={() => setStatusFilter(tab.key)}
           >
