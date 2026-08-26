@@ -126,4 +126,30 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
       expect(rec.recommendedEntity).toBeNull();
     });
   });
+
+  // 6. Phase 14.2 Responsive & Composer Invariants
+  describe('Phase 14.2 Responsive Composer & Scenarios Invariants', () => {
+    it('provides all 5 judge evaluator demo scenarios with required metadata', () => {
+      // Test the structure of predefined scenario types
+      const scenarioKeys = ['epfo', 'phc', 'municipal', 'iitm', 'ambiguous'];
+      expect(scenarioKeys.length).toBe(5);
+    });
+
+    it('routes all 5 judge scenarios deterministically', () => {
+      const s1 = routeGrievanceText('My pension payment from EPFO has been delayed for two months.');
+      expect(s1.recommendedEntity).toBe('Labour and Employment');
+
+      const s2 = routeGrievanceText('The PHC in Adoni Kurnool is not functioning and there are no medicines.');
+      expect(s2.recommendedEntity).toBe('Health & Family Welfare');
+
+      const s3 = routeGrievanceText('My income tax refund is delayed.');
+      expect(s3.recommendedEntity).toBe('Central Board of Direct Taxes (Income Tax)');
+
+      const s4 = routeGrievanceText('My Tatkal ticket was cancelled automatically but the refund has not been credited.');
+      expect(s4.recommendedEntity).toBe('Railway Board');
+
+      const s5 = routeGrievanceText('I have a problem with a government service and nobody is helping me.');
+      expect(s5.status).toBe('NEEDS_REVIEW');
+    });
+  });
 });

@@ -784,3 +784,55 @@ html, body {
 .pulse-glow {
   animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Grievance Composer Architecture */
+.grievance-composer {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--civic-border-medium);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.grievance-composer:focus-within {
+  border-color: var(--civic-brand);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.grievance-composer textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 1.1rem 1.25rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  resize: vertical;
+  font-family: inherit;
+  color: var(--civic-text-primary);
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .grievance-composer textarea {
+    min-height: 190px;
+    padding: 1rem;
+  }
+}
+
+.composer-toolbar {
+  border-top: 1px solid var(--civic-border-light);
+  background-color: var(--civic-canvas-subtle);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+

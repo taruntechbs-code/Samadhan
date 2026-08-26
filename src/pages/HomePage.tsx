@@ -357,50 +357,52 @@ export const HomePage: React.FC = () => {
 
         {/* Where Attention is Needed Signals */}
         <div style={{ backgroundColor: 'var(--civic-canvas-subtle)', padding: '1.25rem', borderRadius: 'var(--radius-card)', border: '1px solid var(--civic-border-light)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--civic-text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {language === 'hi' ? 'प्रशासनिक ध्यान आवश्यक (प्रमुख संकेत)' : 'Where Administrative Attention is Needed'}
-            </span>
-            <button
-              type="button"
-              className="btn btn-text"
-              style={{ padding: 0, minHeight: 'auto', fontSize: '0.75rem', color: 'var(--civic-brand)' }}
-              onClick={() => setIsTrustOpen(true)}
-            >
-              Data Source & Methodology &rarr;
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.875rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {language === 'hi' ? 'प्रशासनिक ध्यान आवश्यक (प्रमुख संकेत)' : 'Where Administrative Attention is Needed'}
+              </span>
+              <button
+                type="button"
+                className="btn btn-text"
+                style={{ padding: '0.25rem 0.5rem', minHeight: '36px', fontSize: '0.75rem', color: 'var(--civic-brand)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                onClick={() => setIsTrustOpen(true)}
+              >
+                <span>{language === 'hi' ? 'डेटा स्रोत एवं पद्धति →' : 'Data Source & Methodology →'}</span>
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
             {/* Signal 1 */}
-            <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-danger)', border: '1px solid var(--civic-border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-text-primary)' }}>Manipur</span>
-                <span className="chip chip-critical" style={{ fontSize: '0.6875rem' }}>2.51% Disposal</span>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '0.875rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-danger)', border: '1px solid var(--civic-border-light)', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--civic-text-primary)', wordBreak: 'break-word' }}>Manipur</span>
+                <span className="chip chip-critical" style={{ fontSize: '0.6875rem', whiteSpace: 'nowrap' }}>2.51% Disposal</span>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.35rem', lineHeight: 1.45 }}>
                 Low disposal velocity requires nodal administrative reinforcement.
               </p>
             </div>
 
             {/* Signal 2 */}
-            <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-warning)', border: '1px solid var(--civic-border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-text-primary)' }}>Labour & Employment</span>
-                <span className="chip chip-medium" style={{ fontSize: '0.6875rem' }}>-5.96 pp Delta</span>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '0.875rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-warning)', border: '1px solid var(--civic-border-light)', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--civic-text-primary)', wordBreak: 'break-word' }}>Labour & Employment</span>
+                <span className="chip chip-medium" style={{ fontSize: '0.6875rem', whiteSpace: 'nowrap' }}>-5.96 pp Delta</span>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.35rem', lineHeight: 1.45 }}>
                 Disposal (92.81%) is below 10-year historical baseline (98.77%).
               </p>
             </div>
 
             {/* Signal 3 */}
-            <div style={{ backgroundColor: '#FFFFFF', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-success)', border: '1px solid var(--civic-border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--civic-text-primary)' }}>Financial Services (Banking)</span>
-                <span className="chip chip-low" style={{ fontSize: '0.6875rem' }}>96.90% Disposal</span>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '0.875rem 1rem', borderRadius: '8px', borderLeft: '4px solid var(--civic-success)', border: '1px solid var(--civic-border-light)', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--civic-text-primary)', wordBreak: 'break-word' }}>Financial Services (Banking)</span>
+                <span className="chip chip-low" style={{ fontSize: '0.6875rem', whiteSpace: 'nowrap' }}>96.90% Disposal</span>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', marginTop: '0.35rem', lineHeight: 1.45 }}>
                 High-volume efficiency: 1,95,849 cases redressed with stable velocity.
               </p>
             </div>

@@ -303,9 +303,9 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               : 'Describe your grievance in your own words or speak naturally. SAMADHAN identifies the appropriate public authority, explains why, and provides explainable evidence.'}
           </p>
 
-          {/* Grievance Input Form Container */}
-          <div style={{ width: '100%', marginTop: '0.75rem', position: 'relative' }}>
-            <div className="input-container">
+          {/* Grievance Input Form Container - Dedicated Composer Architecture */}
+          <div style={{ width: '100%', marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label
                 htmlFor="grievance-input"
                 style={{
@@ -315,25 +315,45 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   textAlign: 'left',
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
-                  marginBottom: '0.25rem',
                 }}
               >
                 {language === 'hi' ? 'शिकायत का विवरण दर्ज करें' : 'Describe your grievance'}
               </label>
 
+              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
+                {text.length > 0 ? `${text.length} chars` : (language === 'hi' ? 'हिंदी या अंग्रेजी' : 'Hindi or English')}
+              </span>
+            </div>
+
+            <div
+              className="grievance-composer"
+              style={{
+                width: '100%',
+                backgroundColor: '#FFFFFF',
+                borderRadius: 'var(--radius-lg)',
+                border: isListening ? '1.5px solid var(--civic-danger)' : '1.5px solid var(--civic-border-medium)',
+                boxShadow: 'var(--shadow-xs)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                transition: 'border-color var(--transition-fast)',
+              }}
+            >
               <textarea
                 id="grievance-input"
-                className="input-filled textarea-filled"
                 style={{
+                  width: '100%',
+                  minHeight: '190px',
+                  padding: '1.1rem 1.25rem',
                   fontSize: '1rem',
-                  minHeight: '140px',
-                  padding: '1rem 1.25rem',
-                  paddingBottom: '3.75rem',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 'var(--radius-lg)',
-                  border: isListening ? '1.5px solid var(--civic-danger)' : '1.5px solid var(--civic-border-medium)',
                   lineHeight: 1.5,
-                  transition: 'border-color var(--transition-fast)',
+                  border: 'none',
+                  outline: 'none',
+                  backgroundColor: 'transparent',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  color: 'var(--civic-text-primary)',
+                  boxSizing: 'border-box',
                 }}
                 placeholder={
                   language === 'hi'
@@ -344,98 +364,105 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 onChange={e => setText(e.target.value)}
                 aria-label="Describe your grievance in simple words"
               />
-            </div>
 
-            {/* Action Bar inside textarea */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: '12px',
-                right: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.5rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                {/* Real Microphone Voice Button */}
-                <button
-                  type="button"
-                  className="btn btn-tonal"
-                  style={{
-                    minHeight: '34px',
-                    padding: '0.35rem 0.75rem',
-                    fontSize: '0.75rem',
-                    color: isListening ? 'var(--civic-danger)' : 'var(--civic-text-secondary)',
-                    backgroundColor: isListening ? 'var(--civic-danger-bg)' : '#FFFFFF',
-                    border: isListening ? '1px solid var(--civic-danger)' : '1px solid var(--civic-border-medium)',
-                    fontWeight: isListening ? 700 : 500,
-                  }}
-                  onClick={handleToggleVoice}
-                  title="Speak grievance via browser microphone"
-                  aria-label={isListening ? 'Stop listening' : 'Start speech recognition'}
-                >
-                  {isListening ? <MicOff size={15} /> : <Mic size={15} />}
-                  <span>{isListening ? (language === 'hi' ? '● सुन रहा है...' : '● Listening...') : (language === 'hi' ? 'बोलें' : 'Speak')}</span>
-                </button>
-
-                {/* Real Native File Picker Button */}
-                <button
-                  type="button"
-                  className="btn btn-tonal"
-                  style={{
-                    minHeight: '34px',
-                    padding: '0.35rem 0.75rem',
-                    fontSize: '0.75rem',
-                    backgroundColor: attachedDocs.length > 0 ? 'var(--civic-success-bg)' : '#FFFFFF',
-                    color: attachedDocs.length > 0 ? 'var(--civic-success-text)' : 'var(--civic-text-secondary)',
-                    border: '1px solid var(--civic-border-medium)',
-                  }}
-                  onClick={handleOpenNativePicker}
-                  title="Attach evidence reference document"
-                  disabled={isParsingFiles}
-                >
-                  <Paperclip size={14} />
-                  <span>
-                    {isParsingFiles
-                      ? (language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing...')
-                      : attachedDocs.length > 0
-                      ? `${attachedDocs.length} ${language === 'hi' ? 'साक्ष्य संलग्न ✓' : 'Evidence Attached ✓'}`
-                      : (language === 'hi' ? 'साक्ष्य जोड़ें' : 'Attach Evidence')}
-                  </span>
-                </button>
-
-                {/* Clear / Reset */}
-                {(text || attachedDocs.length > 0) && (
+              {/* Dedicated Bottom Toolbar */}
+              <div
+                className="composer-toolbar"
+                style={{
+                  borderTop: '1px solid var(--civic-border-light)',
+                  backgroundColor: 'var(--civic-canvas-subtle)',
+                  padding: '0.65rem 0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {/* Real Microphone Voice Button */}
                   <button
                     type="button"
-                    className="btn btn-text"
-                    style={{ minHeight: '34px', padding: '0.35rem 0.5rem', fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}
-                    onClick={handleReset}
+                    className="btn btn-tonal"
+                    style={{
+                      minHeight: '42px',
+                      padding: '0.45rem 0.85rem',
+                      fontSize: '0.8125rem',
+                      color: isListening ? 'var(--civic-danger)' : 'var(--civic-text-secondary)',
+                      backgroundColor: isListening ? 'var(--civic-danger-bg)' : '#FFFFFF',
+                      border: isListening ? '1px solid var(--civic-danger)' : '1px solid var(--civic-border-medium)',
+                      fontWeight: isListening ? 700 : 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                    onClick={handleToggleVoice}
+                    title="Speak grievance via browser microphone"
+                    aria-label={isListening ? 'Stop listening' : 'Start speech recognition'}
                   >
-                    <RefreshCw size={13} />
-                    <span>{language === 'hi' ? 'साफ़ करें' : 'Clear'}</span>
+                    {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                    <span>{isListening ? (language === 'hi' ? '● सुन रहा है...' : '● Listening...') : (language === 'hi' ? 'बोलें' : 'Speak')}</span>
                   </button>
-                )}
-              </div>
 
-              {routingResult && routingResult.recommendedEntity ? (
-                <Button
-                  variant="filled"
-                  style={{ minHeight: '36px', padding: '0.4rem 1.1rem', fontSize: '0.8125rem' }}
-                  onClick={() => onOpenSubmitModal(routingResult, text)}
-                >
-                  <span>{language === 'hi' ? 'प्राधिकरण को भेजें →' : 'Find the right authority →'}</span>
-                </Button>
-              ) : (text.trim().length >= 5 || attachedDocs.length > 0) && isRouting ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--civic-brand)', fontWeight: 600 }}>
-                  <Cpu size={14} className="spin" />
-                  <span>{language === 'hi' ? 'प्राधिकरण मिलान हो रहा है...' : 'Matching public authority...'}</span>
+                  {/* Real Native File Picker Button */}
+                  <button
+                    type="button"
+                    className="btn btn-tonal"
+                    style={{
+                      minHeight: '42px',
+                      padding: '0.45rem 0.85rem',
+                      fontSize: '0.8125rem',
+                      backgroundColor: attachedDocs.length > 0 ? 'var(--civic-success-bg)' : '#FFFFFF',
+                      color: attachedDocs.length > 0 ? 'var(--civic-success-text)' : 'var(--civic-text-secondary)',
+                      border: '1px solid var(--civic-border-medium)',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                    onClick={handleOpenNativePicker}
+                    title="Attach evidence reference document"
+                    disabled={isParsingFiles}
+                  >
+                    <Paperclip size={16} />
+                    <span>
+                      {isParsingFiles
+                        ? (language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing...')
+                        : attachedDocs.length > 0
+                        ? `${attachedDocs.length} ${language === 'hi' ? 'साक्ष्य संलग्न ✓' : 'Evidence Attached ✓'}`
+                        : (language === 'hi' ? 'साक्ष्य जोड़ें' : 'Attach Evidence')}
+                    </span>
+                  </button>
+
+                  {/* Clear / Reset */}
+                  {(text || attachedDocs.length > 0) && (
+                    <button
+                      type="button"
+                      className="btn btn-text"
+                      style={{ minHeight: '42px', padding: '0.45rem 0.65rem', fontSize: '0.75rem', color: 'var(--civic-text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                      onClick={handleReset}
+                    >
+                      <RefreshCw size={14} />
+                      <span>{language === 'hi' ? 'साफ़ करें' : 'Clear'}</span>
+                    </button>
+                  )}
                 </div>
-              ) : null}
+
+                {routingResult && routingResult.recommendedEntity ? (
+                  <Button
+                    variant="filled"
+                    style={{ minHeight: '42px', padding: '0.45rem 1.25rem', fontSize: '0.8125rem' }}
+                    onClick={() => onOpenSubmitModal(routingResult, text)}
+                  >
+                    <span>{language === 'hi' ? 'प्राधिकरण को भेजें →' : 'Find the right authority →'}</span>
+                  </Button>
+                ) : (text.trim().length >= 5 || attachedDocs.length > 0) && isRouting ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--civic-brand)', fontWeight: 600 }}>
+                    <Cpu size={14} className="spin" />
+                    <span>{language === 'hi' ? 'प्राधिकरण मिलान हो रहा है...' : 'Matching public authority...'}</span>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -556,19 +583,20 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
             </div>
           )}
 
-          {/* Quick Example Starters */}
-          <div style={{ width: '100%', marginTop: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600 }}>
-                {language === 'hi' ? 'त्वरित उदाहरण:' : 'Quick examples:'}
+          {/* Quick Example Starters (Option A: Smooth Swipeable Rail) */}
+          <div style={{ width: '100%', marginTop: '0.875rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.45rem', justifyContent: 'center' }}>
+              <Sparkles size={13} style={{ color: 'var(--civic-brand)' }} />
+              <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {language === 'hi' ? 'त्वरित उदाहरण आजमाएं' : 'Try Quick Example Grievances'}
               </span>
             </div>
             <div
               className="mobile-scroll-strip"
               style={{
+                gap: '0.5rem',
+                padding: '0.2rem 0.25rem 0.5rem 0.25rem',
                 justifyContent: 'center',
-                flexWrap: 'wrap',
-                gap: '0.45rem',
               }}
             >
               {QUICK_STARTERS.map((qs, i) => (
@@ -577,12 +605,15 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                   type="button"
                   className="btn btn-tonal"
                   style={{
-                    minHeight: '34px',
-                    padding: '0.3rem 0.75rem',
-                    fontSize: '0.75rem',
+                    minHeight: '44px',
+                    padding: '0.45rem 0.95rem',
+                    fontSize: '0.8125rem',
                     backgroundColor: '#FFFFFF',
-                    border: '1px solid var(--civic-border-light)',
+                    border: '1px solid var(--civic-border-medium)',
+                    borderRadius: 'var(--radius-pill)',
                     whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    fontWeight: 500,
                   }}
                   onClick={() => setText(qs)}
                 >
