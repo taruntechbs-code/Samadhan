@@ -164,39 +164,7 @@ export async function routeGrievance(
   text: string,
   documents?: ExtractedDocument[]
 ): Promise<RoutingRecommendation> {
-  const localResult = routeGrievanceText(text, documents);
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    if (!documents || documents.length === 0) {
-      const res = await fetch(`/api/intelligence/routing?text=${encodeURIComponent(text)}`, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const serverResult = (await res.json()) as RoutingRecommendation;
-        if (serverResult && serverResult.outcomeKind) return serverResult;
-      }
-    } else {
-      const res = await fetch('/api/evidence/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ queryText: text, documents }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const data = (await res.json()) as any;
-        if (data.routing && data.routing.outcomeKind) return data.routing;
-      }
-    }
-  } catch {
-    // Fall back immediately to local deterministic result
-  }
-
-  return localResult;
+  return routeGrievanceText(text, documents);
 }
 
 // 7b. Document Evidence Analysis

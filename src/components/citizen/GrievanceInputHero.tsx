@@ -104,41 +104,37 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
     if (!queryToAnalyze && attachedDocs.length === 0) return;
 
     if ((import.meta as any).env?.DEV) {
-      console.log('[ANALYSIS START]', queryToAnalyze);
+      console.log('[ANALYZE START]', queryToAnalyze);
     }
 
     setIsRouting(true);
     setRoutingError(null);
     setProgressStep(1);
 
-    const stepTimer1 = setTimeout(() => setProgressStep(2), 80);
-    const stepTimer2 = setTimeout(() => setProgressStep(3), 180);
-    const stepTimer3 = setTimeout(() => setProgressStep(4), 280);
+    const stepTimer1 = setTimeout(() => setProgressStep(2), 60);
+    const stepTimer2 = setTimeout(() => setProgressStep(3), 140);
+    const stepTimer3 = setTimeout(() => setProgressStep(4), 220);
 
     try {
       if ((import.meta as any).env?.DEV) {
-        console.log('[ROUTING INVOKED]');
+        console.log('[LOCAL ROUTING START]');
       }
 
       // Smooth visual progression with guaranteed resolution
       const [result] = await Promise.all([
         routeGrievance(queryToAnalyze, attachedDocs),
-        new Promise(resolve => setTimeout(resolve, 320)),
+        new Promise(resolve => setTimeout(resolve, 260)),
       ]);
 
       if ((import.meta as any).env?.DEV) {
-        console.log('[ROUTING RETURNED]', result);
-        console.log('[ROUTING OUTCOME]', result?.outcomeKind);
+        console.log('[LOCAL ROUTING RESULT]', result);
+        console.log('[STATE UPDATE] routingResult updated');
       }
 
       setRoutingResult(result);
-
-      if ((import.meta as any).env?.DEV) {
-        console.log('[STATE UPDATE] routingResult updated');
-      }
     } catch (err: any) {
       if ((import.meta as any).env?.DEV) {
-        console.error('[ANALYSIS ERROR]', err);
+        console.error('[ANALYZE ERROR]', err);
       }
       setRoutingError(err.message || 'Routing analysis failed. Please try again.');
     } finally {
@@ -148,7 +144,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
       setIsRouting(false);
 
       if ((import.meta as any).env?.DEV) {
-        console.log('[ANALYSIS COMPLETE] isRouting set to false');
+        console.log('[ANALYZE COMPLETE] isRouting set to false');
       }
     }
   };
@@ -521,7 +517,12 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                     boxShadow: 'var(--shadow-sm)',
                   }}
                   disabled={isRouting || (!text.trim() && attachedDocs.length === 0)}
-                  onClick={() => handleAnalyze()}
+                  onClick={() => {
+                    if ((import.meta as any).env?.DEV) {
+                      console.log('[CLICK] Find the Right Authority button clicked');
+                    }
+                    handleAnalyze();
+                  }}
                   aria-label={
                     !text.trim() && attachedDocs.length === 0
                       ? (language === 'hi' ? 'प्राधिकरण खोजने से पहले अपनी शिकायत लिखें' : 'Enter a grievance before finding the appropriate authority')
