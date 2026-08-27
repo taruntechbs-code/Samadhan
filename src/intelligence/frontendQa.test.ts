@@ -11,9 +11,9 @@ import { routeGrievanceText } from './routingEngine';
 import { validateFile } from './documentParser';
 import { getSpeechProvider } from '../services/speechService';
 import {
-  saveCitizenGrievance,
   getStoredCitizenGrievances,
   getGrievanceByRef,
+  LEGACY_DEMO_LABEL,
 } from '../services/apiClient';
 
 describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
@@ -85,29 +85,17 @@ describe('Phase 14: Frontend QA & Design Integrity Tests', () => {
     });
   });
 
-  // 4. Grievance Storage & Lifecycle Tracking
-  describe('Citizen Grievance Portfolio Flow', () => {
-    it('creates, persists, and retrieves simulated citizen grievances', () => {
-      const newRecord = saveCitizenGrievance({
-        title: 'EPFO pension payment delayed for 2 months',
-        description: 'My pension payment from EPFO has not arrived.',
-        category: 'EPFO & Pension',
-        routedEntity: 'Labour and Employment',
-        applicantName: 'Sunil Verma',
-        mobile: '9876543210',
-      });
+  // 4. Backward-compatible legacy browser data
+  describe('Legacy Citizen Demo Records', () => {
+    it('reads and clearly labels existing legacy records without creating a new record', () => {
+      const existing = getStoredCitizenGrievances()[0];
+      expect(existing).toBeDefined();
+      expect(existing.legacyLabel).toBe(LEGACY_DEMO_LABEL);
 
-      expect(newRecord.id).toMatch(/^SAM-2026-\d{4}$/);
-      expect(newRecord.status).toBe('SUBMITTED');
-      expect(newRecord.timeline.length).toBeGreaterThanOrEqual(4);
-
-      const found = getGrievanceByRef(newRecord.id);
+      const found = getGrievanceByRef(existing.id);
       expect(found).not.toBeNull();
-      expect(found?.applicantName).toBe('Sunil Verma');
-      expect(found?.routedEntity).toBe('Labour and Employment');
-
-      const all = getStoredCitizenGrievances();
-      expect(all.some(g => g.id === newRecord.id)).toBe(true);
+      expect(found?.id).toBe(existing.id);
+      expect(found?.legacyLabel).toBe('Legacy SAMADHAN demo record — not submitted to CPGRAMS.');
     });
   });
 

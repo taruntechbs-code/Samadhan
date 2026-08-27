@@ -1,27 +1,36 @@
 import React, { useState } from 'react';
-import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
-import { getStoredCitizenGrievances, CitizenGrievanceRecord } from '../services/apiClient';
+import { clearLegacyCitizenGrievances, getStoredCitizenGrievances, CitizenGrievanceRecord, LEGACY_DEMO_LABEL } from '../services/apiClient';
 import { useTranslation } from '../i18n';
 import {
   PlusCircle,
   Search,
   Building2,
   ChevronRight,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const GrievancesPage: React.FC = () => {
   const { t, language } = useTranslation();
   const navigate = useNavigate();
-  const [grievances] = useState<CitizenGrievanceRecord[]>(() => getStoredCitizenGrievances());
+  const [grievances, setGrievances] = useState<CitizenGrievanceRecord[]>(() => getStoredCitizenGrievances());
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   const filtered = grievances.filter(g => {
     if (statusFilter === 'ALL') return true;
     return g.status === statusFilter;
   });
+
+  const handleClearLegacyData = () => {
+    const confirmed = window.confirm(language === 'hi'
+      ? 'क्या आप इस ब्राउज़र से सभी पुराने समाधान डेमो रिकॉर्ड हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।'
+      : 'Clear all legacy SAMADHAN demo records from this browser? This cannot be undone.');
+    if (!confirmed) return;
+    clearLegacyCitizenGrievances();
+    setGrievances([]);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', maxWidth: '960px', margin: '0 auto', paddingBottom: '2.5rem' }}>
@@ -42,26 +51,34 @@ export const GrievancesPage: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
             <span className="chip chip-primary" style={{ fontSize: '0.6875rem', fontWeight: 700 }}>
-              {language === 'hi' ? 'नागरिक डैशबोर्ड' : 'CITIZEN PORTFOLIO'}
+              {language === 'hi' ? 'पुराना ब्राउज़र डेटा' : 'LEGACY BROWSER DATA'}
             </span>
             <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)' }}>
-              {grievances.length} {language === 'hi' ? 'दर्ज शिकायतें' : 'Registered Records'}
+              {grievances.length} {language === 'hi' ? 'डेमो रिकॉर्ड' : 'demo records'}
             </span>
           </div>
 
           <h1 className="headline-medium" style={{ fontSize: '1.4rem', color: 'var(--civic-text-primary)' }}>
-            {language === 'hi' ? 'मेरी दर्ज शिकायतें' : 'My Grievances Portfolio'}
+            {language === 'hi' ? 'पुराने समाधान डेमो रिकॉर्ड' : 'Legacy SAMADHAN Demo Records'}
           </h1>
           <p className="body-medium" style={{ color: 'var(--civic-text-secondary)', marginTop: '0.15rem' }}>
             {language === 'hi'
-              ? 'आपके खाते के अंतर्गत दर्ज सभी शिकायतों की स्थिति, समयसीमा एवं नोडल अधिकारी असाइनमेंट ट्रैक करें'
-              : 'Inspect resolution milestones, aging timelines, and nodal officer assignments for your submitted grievances'}
+              ? 'ये केवल इस ब्राउज़र में रखे पुराने डेमो रिकॉर्ड हैं; ये आधिकारिक प्रस्तुति, खाते या सरकारी रिकॉर्ड नहीं हैं।'
+              : 'These browser-only records are not official submissions, accounts, or government records.'}
           </p>
         </div>
 
         <Button variant="filled" onClick={() => navigate('/')} style={{ minHeight: '40px', fontSize: '0.8125rem' }}>
           <PlusCircle size={15} />
-          <span>{language === 'hi' ? 'नई शिकायत दर्ज करें' : 'Lodge New Grievance'}</span>
+          <span>{language === 'hi' ? 'नई शिकायत तैयार करें' : 'Prepare a New Grievance'}</span>
+        </Button>
+      </div>
+
+      <div style={{ padding: '0.875rem 1rem', border: '1px solid var(--civic-warning-border)', backgroundColor: 'var(--civic-warning-bg)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <strong style={{ color: 'var(--civic-warning-text)', fontSize: '0.8125rem' }}>{LEGACY_DEMO_LABEL}</strong>
+        <Button type="button" variant="text" onClick={handleClearLegacyData} disabled={grievances.length === 0}>
+          <Trash2 size={15} />
+          <span>{language === 'hi' ? 'पुराना डेमो डेटा साफ़ करें' : 'Clear legacy demo data'}</span>
         </Button>
       </div>
 
@@ -129,7 +146,9 @@ export const GrievancesPage: React.FC = () => {
                     <span style={{ fontWeight: 800, color: 'var(--civic-brand)', letterSpacing: '0.04em', fontSize: '0.9375rem' }}>
                       {item.id}
                     </span>
-                    <Badge status={item.status} />
+                    <span className="chip chip-secondary" style={{ fontSize: '0.6875rem' }}>
+                      {language === 'hi' ? 'पुराना डेमो रिकॉर्ड' : 'Legacy demo record'}
+                    </span>
                     <span className="chip chip-secondary" style={{ fontSize: '0.6875rem' }}>
                       {item.category}
                     </span>
@@ -142,7 +161,7 @@ export const GrievancesPage: React.FC = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--civic-text-muted)', fontSize: '0.75rem' }}>
                   <Calendar size={13} />
-                  <span>{language === 'hi' ? 'दर्ज:' : 'Submitted:'} {item.submittedAt}</span>
+                  <span>{language === 'hi' ? 'पुराने रिकॉर्ड की तिथि:' : 'Legacy record date:'} {item.submittedAt}</span>
                 </div>
               </div>
 
@@ -164,7 +183,7 @@ export const GrievancesPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--civic-brand)', fontWeight: 600, fontSize: '0.8125rem' }}>
-                  <span>{language === 'hi' ? 'प्रगति टाइमलाइन देखें' : 'View Timeline & Progress'}</span>
+                  <span>{language === 'hi' ? 'पुराना डेमो विवरण देखें' : 'View legacy demo details'}</span>
                   <ChevronRight size={15} />
                 </div>
               </div>

@@ -262,9 +262,11 @@ export interface CitizenGrievanceRecord {
     timestamp: string;
     completed: boolean;
   }>;
+  legacyLabel?: string;
 }
 
 const STORAGE_KEY = 'samadhan_citizen_grievances';
+export const LEGACY_DEMO_LABEL = 'Legacy SAMADHAN demo record — not submitted to CPGRAMS.';
 
 const SAMPLE_GRIEVANCES: CitizenGrievanceRecord[] = [
   {
@@ -370,71 +372,32 @@ const SAMPLE_GRIEVANCES: CitizenGrievanceRecord[] = [
 
 let memoryGrievances: CitizenGrievanceRecord[] = [...SAMPLE_GRIEVANCES];
 
+function labelLegacyRecords(records: CitizenGrievanceRecord[]): CitizenGrievanceRecord[] {
+  return records.map(record => ({ ...record, legacyLabel: LEGACY_DEMO_LABEL }));
+}
+
 export function getStoredCitizenGrievances(): CitizenGrievanceRecord[] {
   try {
     if (typeof localStorage !== 'undefined') {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
+      if (raw !== null) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          return labelLegacyRecords(parsed);
         }
       }
     }
   } catch {}
-  return memoryGrievances;
+  return labelLegacyRecords(memoryGrievances);
 }
 
-export function saveCitizenGrievance(
-  data: Omit<CitizenGrievanceRecord, 'id' | 'submittedAt' | 'status' | 'timeline'>
-): CitizenGrievanceRecord {
-  const existing = getStoredCitizenGrievances();
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  const id = `SAM-2026-${randomNum}`;
-  const nowStr = new Date().toISOString().split('T')[0];
-
-  const newRecord: CitizenGrievanceRecord = {
-    ...data,
-    id,
-    submittedAt: nowStr,
-    status: 'SUBMITTED',
-    timeline: [
-      {
-        title: 'Grievance Lodged',
-        description: 'Auto-categorized and routed by SAMADHAN Intelligence Engine',
-        timestamp: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        completed: true,
-      },
-      {
-        title: 'Dispatched to Authority',
-        description: `Transmitted directly to ${data.routedEntity}`,
-        timestamp: 'In transit to central redressal cell',
-        completed: false,
-      },
-      {
-        title: 'Officer Review & Action',
-        description: 'Nodal officer assigned for inquiry and resolution',
-        timestamp: 'Scheduled SLA: within 30 days',
-        completed: false,
-      },
-      {
-        title: 'Resolution & Closure',
-        description: 'Citizen satisfaction feedback and final redressal intimation',
-        timestamp: 'Final stage',
-        completed: false,
-      },
-    ],
-  };
-
-  const updated = [newRecord, ...existing];
-  memoryGrievances = updated;
+export function clearLegacyCitizenGrievances(): void {
+  memoryGrievances = [];
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEY, '[]');
     }
   } catch {}
-
-  return newRecord;
 }
 
 export function getGrievanceByRef(referenceNumber: string): CitizenGrievanceRecord | null {

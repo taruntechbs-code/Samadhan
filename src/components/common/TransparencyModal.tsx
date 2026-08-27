@@ -185,7 +185,9 @@ export const TransparencyModal: React.FC<TransparencyModalProps> = ({ isOpen, on
               <span>Independent Civic-Tech Architecture Prototype</span>
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--civic-warning-text)', marginTop: '0.25rem', lineHeight: 1.5 }}>
-              SAMADHAN is an independent innovation prototype and does NOT claim official Government of India portal authority. All citizen grievance submissions generate demo reference numbers stored in the browser session for workflow demonstration. No citizen submissions are transmitted to real CPGRAMS endpoints without explicit authorization.
+              {language === 'hi'
+                ? 'समाधान एक स्वतंत्र नागरिक-तकनीक प्रोटोटाइप है जो शिकायत तैयारी, प्राधिकरण मार्गदर्शन और सार्वजनिक-डेटा प्रज्ञान प्रदान करता है। यह शिकायत प्रस्तुत या ट्रैक नहीं करता। आधिकारिक प्रस्तुति और ट्रैकिंग केवल CPGRAMS पोर्टल करता है। मौजूदा SAM-2026-XXXX ब्राउज़र रिकॉर्ड पुराने डेमो रिकॉर्ड हैं—वे CPGRAMS को प्रस्तुत नहीं किए गए थे।'
+                : 'SAMADHAN is an independent civic-tech prototype for grievance preparation, authority guidance, and public-data intelligence. It does not submit or track grievances. Official submission and tracking happen only on CPGRAMS. Existing SAM-2026-XXXX browser records are legacy demo records—not submissions to CPGRAMS.'}
             </p>
           </div>
 

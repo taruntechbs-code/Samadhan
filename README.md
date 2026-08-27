@@ -407,9 +407,9 @@ All backend endpoints return standardized JSON envelopes with structured HTTP st
 ```
 CURRENT DEMO PROTOTYPE                          FUTURE PRODUCTION REQUIREMENTS
 ┌────────────────────────────────────────┐     ┌────────────────────────────────────────┐
-│ • Local browser reference generation   │     │ • DigiLocker / Aadhaar OTP / Jan       │
-│   (SAM-2026-XXXX)                      │     │   Parichay Single Sign-On (SSO)        │
-│ • Structured complaint review & copy   │ ──► │ • Authorized CPGRAMS REST API Gateway  │
+│ • Deterministic grievance preparation  │     │ • DigiLocker / Aadhaar OTP / Jan       │
+│ • Structured complaint review & copy   │     │   Parichay Single Sign-On (SSO)        │
+│ • No new local tracking references     │ ──► │ • Authorized CPGRAMS REST API Gateway  │
 │ • "Continue to Official CPGRAMS →"     │     │   with mTLS and signed payloads        │
 │ • No unauthorized API transmission     │     │ • Role-Based Access Control (RBAC)     │
 │ • Official portal remains destination  │     │ • Centralized immutable SIEM audit logs│
@@ -466,7 +466,7 @@ Samadhan/
 │   │   │   ├── EvidenceViewerModal.tsx            # Attached document evidence inspector
 │   │   │   ├── FacilityContextCard.tsx            # Geographic healthcare resolution card
 │   │   │   ├── GrievanceInputHero.tsx             # Primary assisted intake composer & mic
-│   │   │   ├── GrievanceSubmitModal.tsx           # Grievance preparation & review dialog
+│   │   │   ├── GrievancePreparationModal.tsx      # Grievance preparation & review dialog
 │   │   │   ├── GrievanceTimeline.tsx              # 30-day milestone progress timeline
 │   │   │   ├── NodalOfficerCard.tsx               # Verified CPGRAMS Nodal Officer card
 │   │   │   └── SamadhanJourney.tsx                # Process architecture explanation
@@ -538,7 +538,7 @@ Samadhan/
 │   │   ├── GovernmentPage.tsx                     # Operations & Intelligence Cockpit
 │   │   ├── GrievancesPage.tsx                     # Citizen Local Grievances History
 │   │   ├── HomePage.tsx                           # Assisted Grievance Intake & Pulse
-│   │   └── TrackPage.tsx                          # Real-Time Status & Timeline Tracking
+│   │   └── TrackPage.tsx                          # Official CPGRAMS handoff & legacy demo lookup
 │   ├── services/                                  # Service & Client Layer
 │   │   ├── apiClient.ts                           # Frontend API bridge with fallback
 │   │   ├── cpgramsService.ts                      # Core CPGRAMS data service

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '../components/common/Button';
-import { Badge } from '../components/common/Badge';
-import { EvidenceBadge } from '../components/common/EvidenceBadge';
 import { GrievanceTimeline } from '../components/citizen/GrievanceTimeline';
 import { getGrievanceByRef, getStoredCitizenGrievances, CitizenGrievanceRecord } from '../services/apiClient';
 import { useTranslation } from '../i18n';
@@ -14,13 +12,14 @@ import {
   Info,
   Clock,
   Calendar,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 
 export const TrackPage: React.FC = () => {
   const { t, language } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialRef = searchParams.get('ref') || 'SAM-2026-1042';
+  const initialRef = searchParams.get('ref') || '';
 
   const [query, setQuery] = useState(initialRef);
   const [record, setRecord] = useState<CitizenGrievanceRecord | null>(null);
@@ -59,17 +58,33 @@ export const TrackPage: React.FC = () => {
       >
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', backgroundColor: 'var(--civic-brand-light)', color: 'var(--civic-brand-dark)', padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-pill)', fontSize: '0.75rem', fontWeight: 700 }}>
           <Clock size={14} />
-          <span>{language === 'hi' ? 'वास्तविक समय शिकायत स्थिति ट्रैकिंग' : 'Official Status Tracking'}</span>
+          <span>{language === 'hi' ? 'आधिकारिक CPGRAMS ट्रैकिंग' : 'OFFICIAL CPGRAMS TRACKING'}</span>
         </div>
 
         <h1 className="headline-large" style={{ color: 'var(--civic-text-primary)', margin: 0 }}>
-          {language === 'hi' ? 'अपनी शिकायत की स्थिति ट्रैक करें' : 'Track Your Grievance'}
+          {language === 'hi' ? 'आधिकारिक CPGRAMS पर स्थिति देखें' : 'Track on Official CPGRAMS'}
         </h1>
         <p className="body-medium" style={{ color: 'var(--civic-text-secondary)', maxWidth: '580px', margin: 0 }}>
           {language === 'hi'
-            ? 'नोडल अधिकारी असाइनमेंट, समयसीमा और निवारण चरणों को देखने के लिए अपना संदर्भ नंबर दर्ज करें।'
-            : 'Enter your registration reference number to inspect assigned nodal cell, SLA countdown, and resolution progress.'}
+            ? 'समाधान आधिकारिक CPGRAMS स्थिति प्राप्त नहीं कर सकता। अपने CPGRAMS पंजीकरण नंबर का उपयोग आधिकारिक पोर्टल पर करें।'
+            : 'SAMADHAN cannot retrieve official CPGRAMS status. Use your CPGRAMS registration number on the official portal.'}
         </p>
+
+        <a
+          className="btn btn-filled"
+          href="https://pgportal.gov.in"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ minHeight: '46px', padding: '0.65rem 1.25rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <span>{language === 'hi' ? 'आधिकारिक CPGRAMS ट्रैकिंग खोलें' : 'Open Official CPGRAMS Tracking'}</span>
+          <ExternalLink size={16} />
+        </a>
+
+        <div style={{ width: '100%', borderTop: '1px solid var(--civic-border-light)', paddingTop: '1rem', fontSize: '0.8125rem', color: 'var(--civic-text-secondary)' }}>
+          <strong>{language === 'hi' ? 'पुराने समाधान डेमो रिकॉर्ड की खोज' : 'Legacy SAMADHAN demo record lookup'}</strong>
+          <div>{language === 'hi' ? 'ये रिकॉर्ड CPGRAMS को प्रस्तुत नहीं किए गए थे।' : 'These records were not submitted to CPGRAMS.'}</div>
+        </div>
 
         {/* Search Input */}
         <form
@@ -101,7 +116,7 @@ export const TrackPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="filled" style={{ minHeight: '46px', padding: '0.5rem 1.25rem', flex: '0 0 auto' }}>
-            <span>{language === 'hi' ? 'स्थिति खोजें' : 'Track Status'}</span>
+            <span>{language === 'hi' ? 'डेमो रिकॉर्ड खोजें' : 'Find Demo Record'}</span>
           </Button>
         </form>
 
@@ -117,7 +132,7 @@ export const TrackPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '0.75rem', color: 'var(--civic-text-muted)', fontWeight: 600, alignSelf: 'center' }}>
-                {language === 'hi' ? 'नमूना संदर्भ:' : 'Sample:'}
+                {language === 'hi' ? 'पुराने डेमो संदर्भ:' : 'Legacy demo references:'}
               </span>
               {sampleList.map(s => (
                 <button
@@ -158,9 +173,8 @@ export const TrackPage: React.FC = () => {
                 <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--civic-brand)', letterSpacing: '0.04em' }}>
                   {record.id}
                 </span>
-                <Badge status={record.status} />
                 <span className="chip chip-secondary" style={{ fontSize: '0.6875rem' }}>
-                  Demo Citizen Record
+                  {language === 'hi' ? 'पुराना डेमो रिकॉर्ड' : 'Legacy demo record'}
                 </span>
               </div>
               <h2 className="title-large" style={{ fontSize: '1.15rem', color: 'var(--civic-text-primary)' }}>
@@ -171,7 +185,7 @@ export const TrackPage: React.FC = () => {
             <div style={{ textAlign: 'right', fontSize: '0.8125rem', color: 'var(--civic-text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'flex-end' }}>
                 <Calendar size={13} style={{ color: 'var(--civic-text-muted)' }} />
-                <span>{language === 'hi' ? 'दर्ज तिथि:' : 'Submitted:'} <strong>{record.submittedAt}</strong></span>
+                <span>{language === 'hi' ? 'पुराने रिकॉर्ड की तिथि:' : 'Legacy record date:'} <strong>{record.submittedAt}</strong></span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'flex-end' }}>
                 <User size={13} style={{ color: 'var(--civic-text-muted)' }} />
@@ -212,7 +226,7 @@ export const TrackPage: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '0.7125rem', color: 'var(--civic-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {language === 'hi' ? 'आबंटित प्राधिकरण / निवारण सेल' : 'Assigned Public Authority'}
+                  {language === 'hi' ? 'पुराना अनुशंसित प्राधिकरण' : 'Historical recommended authority'}
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--civic-text-primary)' }}>
                   {record.routedEntity}
@@ -224,18 +238,9 @@ export const TrackPage: React.FC = () => {
               <span className="chip chip-primary" style={{ fontSize: '0.75rem' }}>
                 {record.category}
               </span>
-              <EvidenceBadge
-                evidence={{
-                  dataset: 'live_dashboard_2026',
-                  entity: record.routedEntity,
-                  metric: 'grievance_redressal_cell',
-                  value: 'Active Nodal Cell',
-                  period: '2026-01-01 to 2026-08-24',
-                  sourceUrl: 'https://pgportal.gov.in/darpgdashboard',
-                  sourceNote: 'Entity active in official CPGRAMS central live telemetry.',
-                }}
-                label={language === 'hi' ? 'सत्यापित सेल' : 'Verified Nodal Cell'}
-              />
+              <span className="chip chip-secondary" style={{ fontSize: '0.75rem' }}>
+                {language === 'hi' ? `पुरानी डेमो स्थिति: ${record.status}` : `Legacy demo status: ${record.status}`}
+              </span>
             </div>
           </div>
 
@@ -252,7 +257,7 @@ export const TrackPage: React.FC = () => {
           {/* Visual Redressal Timeline */}
           <div>
             <h3 className="title-medium" style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--civic-text-primary)' }}>
-              {language === 'hi' ? 'निवारण जीवनचक्र एवं प्रगति' : 'Redressal Lifecycle & Milestone Progress'}
+              {language === 'hi' ? 'पुरानी सिमुलेटेड डेमो टाइमलाइन' : 'Archived simulated demo timeline'}
             </h3>
             <GrievanceTimeline items={record.timeline} />
           </div>
@@ -273,12 +278,12 @@ export const TrackPage: React.FC = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ShieldCheck size={16} style={{ color: 'var(--civic-success)', flexShrink: 0 }} />
-              <span>Standard DARPG Citizen Charter SLA: Targeted for resolution within 30 operational days.</span>
+              <span>{language === 'hi' ? 'यह टाइमलाइन केवल पुराने समाधान डेमो का भाग है।' : 'This timeline belongs only to the legacy SAMADHAN demo.'}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' }}>
               <Info size={13} />
-              <span>Independent civic-tech demo simulation</span>
+              <span>Legacy SAMADHAN demo record — not submitted to CPGRAMS.</span>
             </div>
           </div>
         </div>

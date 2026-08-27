@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GrievanceInputHero } from '../components/citizen/GrievanceInputHero';
-import { GrievanceSubmitModal } from '../components/citizen/GrievanceSubmitModal';
+import { GrievancePreparationModal } from '../components/citizen/GrievancePreparationModal';
 import { RoutingRecommendation } from '../intelligence/types';
 import { Button } from '../components/common/Button';
 import { TransparencyModal } from '../components/common/TransparencyModal';
@@ -27,14 +27,14 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRouting, setSelectedRouting] = useState<RoutingRecommendation | null>(null);
   const [grievanceText, setGrievanceText] = useState('');
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isPreparationModalOpen, setIsPreparationModalOpen] = useState(false);
   const [activeScenarioQuery, setActiveScenarioQuery] = useState<string | undefined>(undefined);
   const [isTrustOpen, setIsTrustOpen] = useState(false);
 
-  const handleOpenSubmit = (routing: RoutingRecommendation, text: string) => {
+  const handleOpenPreparation = (routing: RoutingRecommendation, text: string) => {
     setSelectedRouting(routing);
     setGrievanceText(text);
-    setIsSubmitModalOpen(true);
+    setIsPreparationModalOpen(true);
   };
 
   const handleTriggerCategory = (query: string) => {
@@ -136,10 +136,10 @@ export const HomePage: React.FC = () => {
     },
     {
       num: '04',
-      title: language === 'hi' ? 'निगरानी करें' : 'Monitor',
+      title: language === 'hi' ? 'तैयार करें एवं आगे बढ़ें' : 'Prepare & Continue',
       desc: language === 'hi'
-        ? 'विस्तृत 30-दिवसीय समयसीमा और पारदर्शी स्थिति ट्रैकिंग के साथ शिकायत की प्रगति देखें।'
-        : 'Track milestone progress with official SLA countdown and administrative accountability.',
+        ? 'मसौदे की समीक्षा और कॉपी करें, फिर आधिकारिक प्रस्तुति एवं ट्रैकिंग के लिए CPGRAMS पर जाएं।'
+        : 'Review and copy the draft, then continue to CPGRAMS for official submission and tracking.',
       icon: <BarChart3 size={20} />,
     },
   ];
@@ -148,7 +148,7 @@ export const HomePage: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', paddingBottom: '2.5rem' }}>
       {/* 1. Primary Civic Grievance Intake Hero */}
       <GrievanceInputHero
-        onOpenSubmitModal={handleOpenSubmit}
+        onOpenPreparationModal={handleOpenPreparation}
         externalQuery={activeScenarioQuery}
       />
 
@@ -223,7 +223,7 @@ export const HomePage: React.FC = () => {
             </p>
           </div>
           <Button variant="tonal" onClick={() => navigate('/track')} style={{ minHeight: '36px', fontSize: '0.8125rem' }}>
-            <span>{language === 'hi' ? 'मौजूदा शिकायत ट्रैक करें' : 'Track Existing Grievance'}</span>
+            <span>{language === 'hi' ? 'आधिकारिक CPGRAMS ट्रैकिंग' : 'Official CPGRAMS Tracking'}</span>
             <ArrowRight size={14} />
           </Button>
         </div>
@@ -410,10 +410,10 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Submission Dialog Modal */}
-      <GrievanceSubmitModal
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
+      {/* CPGRAMS preparation and review dialog */}
+      <GrievancePreparationModal
+        isOpen={isPreparationModalOpen}
+        onClose={() => setIsPreparationModalOpen(false)}
         routing={selectedRouting}
         grievanceText={grievanceText}
       />

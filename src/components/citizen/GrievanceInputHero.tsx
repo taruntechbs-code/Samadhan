@@ -29,12 +29,12 @@ import {
 } from 'lucide-react';
 
 interface GrievanceInputHeroProps {
-  onOpenSubmitModal: (recommendation: RoutingRecommendation, grievanceText: string) => void;
+  onOpenPreparationModal: (recommendation: RoutingRecommendation, grievanceText: string) => void;
   externalQuery?: string;
 }
 
 export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
-  onOpenSubmitModal,
+  onOpenPreparationModal,
   externalQuery,
 }) => {
   const { language } = useTranslation();
@@ -854,7 +854,7 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
               </div>
             </div>
 
-            {/* Lodge CTA Button */}
+            {/* CPGRAMS draft preparation CTA */}
             <Button
               variant="filled"
               className="btn btn-filled"
@@ -867,9 +867,9 @@ export const GrievanceInputHero: React.FC<GrievanceInputHeroProps> = ({
                 alignItems: 'center',
                 gap: '0.5rem',
               }}
-              onClick={() => onOpenSubmitModal(routingResult, text)}
+              onClick={() => onOpenPreparationModal(routingResult, text)}
             >
-              <span>{language === 'hi' ? 'इस प्राधिकरण में शिकायत दर्ज करें' : 'Lodge Grievance to this Authority'}</span>
+              <span>{language === 'hi' ? 'CPGRAMS के लिए शिकायत तैयार करें' : 'Prepare Grievance for CPGRAMS'}</span>
               <ArrowRight size={17} />
             </Button>
           </div>

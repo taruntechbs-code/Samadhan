@@ -20,8 +20,8 @@ describe('i18n Localization Architecture', () => {
 
   it('should translate core navigation items to authentic Hindi', () => {
     expect(hi.nav.home).toBe('नागरिक गृह');
-    expect(hi.nav.track).toBe('स्थिति जांचें');
-    expect(hi.nav.grievances).toBe('मेरी शिकायतें');
+    expect(hi.nav.track).toBe('आधिकारिक CPGRAMS ट्रैकिंग');
+    expect(hi.nav.grievances).toBe('पुराने डेमो रिकॉर्ड');
     expect(hi.nav.government).toBe('प्रशासनिक डैशबोर्ड');
   });
 

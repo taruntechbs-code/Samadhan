@@ -57,7 +57,7 @@ src/
 │   ├── citizen/
 │   │   ├── GrievanceInputHero.tsx
 │   │   ├── RoutingResultCard.tsx
-│   │   ├── GrievanceSubmitModal.tsx
+│   │   ├── GrievancePreparationModal.tsx
 │   │   └── GrievanceTimeline.tsx
 │   └── government/
 │       ├── ExecutiveKpis.tsx
@@ -72,9 +72,9 @@ src/
 ---
 
 ## 4. Page Architecture
-* `/` — **Citizen Home**: Natural language problem input, instant prototype routing with confidence indicator, candidate authorities, quick categories, and submission confirmation with persistent reference generation (`SAM-2026-XXXX`).
-* `/track` — **Track Grievance**: Real-time status lookup with visual timeline, SLA aging category, and assigned nodal department.
-* `/grievances` — **My Grievances**: Citizen local history, active filters, status cards, and direct tracking links.
+* `/` — **Citizen Home**: Natural language problem input, deterministic routing with confidence indicator, clarification, authority guidance, and editable CPGRAMS draft preparation.
+* `/track` — **Track Grievance**: Primary handoff to official CPGRAMS tracking, with clearly separated legacy demo lookup.
+* `/grievances` — **Legacy Demo Records**: Backward-compatible browser history with explicit legacy labeling and confirmed clearing.
 * `/government` — **Government Operations & Intelligence Cockpit**:
   * Tab 1: Executive Overview (KPIs, Aging, System Insights, Appeals)
   * Tab 2: Attention Required (Explainable risk triage with concrete evidence and actionable recommendations)

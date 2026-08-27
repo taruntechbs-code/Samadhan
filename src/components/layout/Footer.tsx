@@ -53,13 +53,13 @@ export const Footer: React.FC = () => {
                 {language === 'hi' ? 'नागरिक सेवाएँ' : 'Citizen Services'}
               </span>
               <NavLink to="/" style={{ fontSize: '0.8125rem', color: 'var(--civic-text-secondary)', textDecoration: 'none' }}>
-                {language === 'hi' ? 'शिकायत दर्ज करें' : 'Lodge Grievance'}
+                {language === 'hi' ? 'शिकायत तैयार करें' : 'Prepare Grievance'}
               </NavLink>
               <NavLink to="/track" style={{ fontSize: '0.8125rem', color: 'var(--civic-text-secondary)', textDecoration: 'none' }}>
                 {language === 'hi' ? 'स्थिति ट्रैक करें' : 'Track Grievance Status'}
               </NavLink>
               <NavLink to="/grievances" style={{ fontSize: '0.8125rem', color: 'var(--civic-text-secondary)', textDecoration: 'none' }}>
-                {language === 'hi' ? 'मेरी शिकायतें' : 'My Grievances Portfolio'}
+                {language === 'hi' ? 'पुराने डेमो रिकॉर्ड' : 'Legacy Demo Records'}
               </NavLink>
               <button
                 type="button"
